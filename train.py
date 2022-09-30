@@ -10,9 +10,23 @@ if __name__ == "__main__":
     
     plt.ion()
     for sample in dataloader:
-        image = sample["image"]
+        image = sample["image"][0].permute([1,2,0])
+        print(image.shape)
         plt.cla()
-        plt.imshow(image[0].permute([1,2,0]))
+        plt.imshow(image)
         plt.pause(1)
+        
+        mu = torch.tensor([100,56]).float()
+        p1 = EuclidPointModel(mu)
+        pdf = p1.pdf(False).detach()
+
+        plt.imshow(pdf,cmap="bone")
+        plt.pause(1)
+
+        evl = p1.exist(image).detach()
+        print(evl.shape)
+        plt.imshow(evl)
+        plt.pause(1)
+
     plt.ioff()
     plt.show()
