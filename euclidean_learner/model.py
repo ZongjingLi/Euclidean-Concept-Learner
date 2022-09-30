@@ -104,6 +104,7 @@ class EuclidLineModel(EuclidConceptModel):
 def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
     optim = torch.optim.Adam(model.parameters(), lr = opt.lr)
     for epoch in range(n_epochs):
+        loss = 0
         optim.zero_grad()
         logpdf = model.exist(x)
         
@@ -112,7 +113,10 @@ def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
             print(epoch,loss)
             outputs = model.pdf(False)
             plt.imshow(outputs.detach());plt.pause(0.01);plt.cla()
+            for param in model.parameters():
+                print(param)
 
-        loss.backward()
+        loss.backward(retain_graph = True)
         optim.step()
+    
         

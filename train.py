@@ -32,12 +32,8 @@ if __name__ == "__main__":
         line1 = EuclidLineModel(p1,p2)
         pdf3 = line1.pdf(False).detach()
 
-        plt.imshow(pdf3+pdf1+pdf2,cmap = "bone")
+        plt.imshow(pdf3*0.1 + pdf1 + pdf2,cmap = "bone")
 
-        plt.pause(.1)
-
-        outputs = line1.exist(image,False).detach()
-        plt.imshow(outputs)
         plt.pause(1)
 
         adjust_model_to_observation(line1,image,50,True)
