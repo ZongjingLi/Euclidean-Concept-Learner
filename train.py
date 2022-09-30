@@ -11,6 +11,7 @@ if __name__ == "__main__":
     plt.ion()
     for sample in dataloader:
         image = sample["image"]
+        plt.cla()
         plt.imshow(image[0].permute([1,2,0]))
         plt.pause(1)
     plt.ioff()

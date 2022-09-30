@@ -26,7 +26,7 @@ class ConceptModelSearch(nn.Module):
         return x
 
 class EuclidConceptModel(nn.Module):
-    def __init__(self):
+    def __init__(self,resolution = (128,128)):
         super().__init__()
         """
         An euclid concept program is either a:
@@ -34,6 +34,7 @@ class EuclidConceptModel(nn.Module):
         or the composition of these things (constraint, and)
         """
         self.euclid_program = None
+        self.grid = make_grid(resolution).permute([1,2,0]).to(opt.device)
 
     def forward(self,x,format = "logp"):
         """
@@ -42,3 +43,12 @@ class EuclidConceptModel(nn.Module):
         """
         return 0
 
+class EuclidPointModel(EuclidConceptModel):
+    def __init__(self,coord = None):
+        super().__init__()
+        self.coord = nn.Parameter(coord) if coord is not None else nn.Parameter(torch.randn([1,2]))
+
+    def pdf(self,log = True):
+        point_wise_normal = dists.Normal(self.coord,opt.scale)
+        if log:return torch.sum(point_wise_normal.log_prob(self.grid),-1)
+        return  torch.sum(point_wise_normal.log_prob(self.grid),-1).exp()

@@ -22,7 +22,8 @@ class EuclidData(Dataset):
             self.split
         )
         self.img_transform = transforms.Compose(
-            [transforms.ToTensor()]
+            [   
+                transforms.ToTensor()]
         )
         self.question_file = None
         self.resolution = resolution
@@ -32,7 +33,7 @@ class EuclidData(Dataset):
     def __getitem__(self,index):
         index = index + 1
         image = Image.open(os.path.join(self.concept_path,"{}_fin.png").format(index))
-        image = self.img_transform(image.convert("RGB").resize(self.resolution))
+        image = self.img_transform(image.resize(self.resolution))
         return {"image":image}
 
 class BattlecodeData(Dataset):
