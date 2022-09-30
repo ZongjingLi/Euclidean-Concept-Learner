@@ -1,13 +1,18 @@
 import torch
 from torch.autograd import Variable
 
-v1 = Variable(torch.randn([1,32]),requires_grad = True)
+import matplotlib.pyplot as plt
 
 def make_grid(resolution = (128,128)):
     # make the grid with the shape of [w,h]
-    return resolution
+    x = torch.linspace(0,resolution[0],resolution[0])
+    y = torch.linspace(0,resolution[1],resolution[1])
+    grid = torch.meshgrid(x,y)
+    return torch.stack(grid)
 
 def make_points(num = 1,distribution = "normal"):
     return [Variable(torch.randn(2),requires_grad = True) for _ in range(num)]
 
-print(make_points(3))
+
+def gain_distribution(self,pdf):
+    return 0

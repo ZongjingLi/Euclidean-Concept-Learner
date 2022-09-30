@@ -7,6 +7,17 @@ from torch.autograd import Variable
 
 from .config import *
 
+import torch.distributions as dists
+
+def point_wise_pdf(input_x,coord):
+    """
+    input_x: the grid of input that reprents the image
+    coord  : the Nx2 shape tensor that represents locations in the grid
+    """
+    point_wise_normal = dists.Normal(coord,scale = opt.scale)
+    
+    return input_x
+
 class ConceptModelSearch(nn.Module):
     def __init__(self):
         super().__init__()
@@ -30,3 +41,4 @@ class EuclidConceptModel(nn.Module):
         cross_entropy : return the cross entropy of the image x created by the model
         """
         return 0
+
