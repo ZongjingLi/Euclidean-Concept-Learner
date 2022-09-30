@@ -109,7 +109,7 @@ def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
         loss = 0 - torch.sum(logpdf)
         loss.backward()
         optim.step()
-        logpdf = model.pdf(False)
+        outputs = model.pdf(False)
         if visualize:
             print(epoch,loss)
-            plt.imshow(logpdf.detach());plt.pause(0.01);plt.cla()
+            plt.imshow(outputs.detach());plt.pause(0.01);plt.cla()
