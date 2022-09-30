@@ -17,27 +17,27 @@ if __name__ == "__main__":
         
         mu = torch.tensor([100,56]).float()
         p1 = EuclidPointModel(mu)
-        pdf = p1.pdf(False).detach()
+        pdf1 = p1.pdf(False).detach()
 
-        plt.imshow(pdf,cmap = "bone")
+        plt.imshow(pdf1,cmap = "bone")
         plt.pause(1)
         
         # evaluate the second point
         p2 = EuclidPointModel(mu * 0.3)
-        pdf = p2.pdf(False).detach()
+        pdf2 = p2.pdf(False).detach()
 
-        plt.imshow(pdf,cmap = "bone")
+        plt.imshow(pdf2,cmap = "bone")
         plt.pause(1)
 
         line1 = EuclidLineModel(p1,p2)
-        pdf = line1.pdf(False).detach()
+        pdf3 = line1.pdf(False).detach() + pdf1 + pdf2
 
-        plt.imshow(pdf,cmap = "bone")
+        plt.imshow(pdf3,cmap = "bone")
         plt.pause(1)
 
         outputs = line1.exist(image,False).detach()
         plt.imshow(outputs)
-        plt.show()
+        plt.pause(1)
     
     plt.ioff()
     plt.show()

@@ -91,7 +91,7 @@ class EuclidLineModel(EuclidConceptModel):
         line_norm = dists.Normal(0,opt.line_scale)
         logpdf = line_norm.log_prob(min_diff)
 
-        logpdf = logpdf.view(opt.resolution+(1,))
+        logpdf = logpdf.view(opt.resolution)
         if log:return logpdf
         return  logpdf.exp()
 
