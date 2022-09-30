@@ -20,25 +20,27 @@ if __name__ == "__main__":
         pdf1 = p1.pdf(False).detach()
 
         plt.imshow(pdf1,cmap = "bone")
-        plt.pause(1)
+        plt.pause(.1)
         
         # evaluate the second point
         p2 = EuclidPointModel(mu * 0.3)
         pdf2 = p2.pdf(False).detach()
 
         plt.imshow(pdf2,cmap = "bone")
-        plt.pause(1)
+        plt.pause(.1)
 
         line1 = EuclidLineModel(p1,p2)
         pdf3 = line1.pdf(False).detach()
 
         plt.imshow(pdf3+pdf1+pdf2,cmap = "bone")
 
-        plt.pause(1)
+        plt.pause(.1)
 
         outputs = line1.exist(image,False).detach()
         plt.imshow(outputs)
         plt.pause(1)
+
+        adjust_model_to_observation(line1,image,50,True)
     
     plt.ioff()
     plt.show()
@@ -50,3 +52,4 @@ if __name__ == "__main__":
         plt.imshow(evl,cmap = "bone")
         plt.pause(1)
     """
+    

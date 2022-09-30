@@ -97,11 +97,19 @@ class EuclidLineModel(EuclidConceptModel):
         return  logpdf.exp()
 
     def exist(self,x,log = True):
-        print(x.shape)
         pdf = self.pdf(log).unsqueeze(-1)
-        print(pdf.shape)
         return torch.sum(pdf * x,-1)
 
 
-def adjust_model_to_observation(model,x):
+def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
     optim = torch.optim.Adam(model.parameters(), lr = opt.lr)
+    for epoch in range(n_epochs):
+        optim.zero_grad()
+        logpdf = model.exist(x)
+        loss = 0 - torch.sum(logpdf,-1)
+        loss.backward()
+        optim.step()
+        logpdf = model.pdf(False)
+        if visualize:
+            print(epoch,loss)
+            plt.imshow(logpdf.detach());plt.pause(0.01);plt.cla()
