@@ -61,6 +61,8 @@ class EuclidPointModel(EuclidConceptModel):
 class EuclidLineModel(EuclidConceptModel):
     def __init__(self,point1 = None,point2 = None):
         super().__init__()
+
+        self.segments = 100
         
         if point1 is None:
             self.point1 = EuclidPointModel(None) # if there is no given point
@@ -77,11 +79,21 @@ class EuclidLineModel(EuclidConceptModel):
             self.point2 = point2 # if the parameter is a give point
         else:
             self.point2 = EuclidPointModel(point2) # there is fixed given point
+        self.line = segment(self.point1.coord,self.point2.coord,self.segments)
 
     def pdf(self,log = True):
-        point_wise_normal = dists.Normal(self.coord,opt.scale)
-        if log:return torch.sum(point_wise_normal.log_prob(self.grid),-1)
-        return  torch.sum(point_wise_normal.log_prob(self.grid),-1).exp()
+        grid_expand = self.grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments,1,1])
+        diff = grid_expand - self.line.unsqueeze(1).repeat([1,16384,1])
+
+        leng_diff = torch.norm(diff,dim = -1)
+        min_diff = torch.min(leng_diff,0).values
+
+        line_norm = dists.Normal(0,opt.line_scale)
+        logpdf = line_norm.log_prob(min_diff)
+
+        logpdf = logpdf.view(opt.resolution+(1,))
+        if log:return logpdf
+        return  logpdf.exp()
 
     def exist(self,x,log = True):
         pdf = self.pdf(log).unsqueeze(-1)

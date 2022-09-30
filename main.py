@@ -17,14 +17,6 @@ grid = make_grid().permute([1,2,0])
 
 grid_expand = grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([100,1,1])
 
-"""
-def harmard_min(source,set):
-    outputs = []
-    for i in range(source.size(0)):
-        outputs.append(torch.min(source - set,-1).values())
-    return torch.stack(outputs)
-"""
-
 diff = grid_expand - test_line.unsqueeze(1).repeat([1,16384,1])
 print(diff.shape)
 leng_diff = torch.norm(diff,dim = -1)

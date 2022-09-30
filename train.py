@@ -21,11 +21,27 @@ if __name__ == "__main__":
 
         plt.imshow(pdf,cmap = "bone")
         plt.pause(1)
+        
+        # evaluate the second point
+        p2 = EuclidPointModel(mu * 0.3)
+        pdf = p2.pdf(False).detach()
 
+        plt.imshow(pdf,cmap = "bone")
+        plt.pause(1)
+
+        line1 = EuclidLineModel(p1,p2)
+        pdf = line1.pdf(False).detach()
+
+        plt.imshow(pdf,cmap = "bone")
+        plt.pause(1)
+    
+    plt.ioff()
+    plt.show()
+
+    """
+            # p1 existence map
         evl = p1.exist(image,True).detach()
 
         plt.imshow(evl,cmap = "bone")
         plt.pause(1)
-
-    plt.ioff()
-    plt.show()
+    """
