@@ -17,11 +17,13 @@ if __name__ == "__main__":
         plt.pause(1)
         
         mu = 64 + torch.randn([2]).float()
-        p1 = EuclidPointModel(mu)
+        p1 = EuclidPointModel(torch.tensor([70,50]) + torch.randn([2]))
         p2 = EuclidPointModel(mu * 0.6)
+        p3 = EuclidPointModel(mu * 0.8)
         line1 = EuclidLineModel(p1,p2)
+        angle = EuclidAngleModel(p1,p2,p3)
 
-        adjust_model_to_observation(line1,image,1350,True)
+        adjust_model_to_observation(angle,image,1350,True)
     
     plt.ioff()
     plt.show()

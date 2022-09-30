@@ -1,6 +1,6 @@
 import torch
 from torch.autograd import Variable
-from config import *
+from .config import *
 
 import matplotlib.pyplot as plt
 
@@ -32,4 +32,3 @@ def parse_concept_program(program = ["l1 = line(p1(), p2())"]):
         ground_elements.append(left)
     return ground_elements
 
-print(parse_concept_program())
