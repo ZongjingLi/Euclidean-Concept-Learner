@@ -34,6 +34,10 @@ if __name__ == "__main__":
 
         plt.imshow(pdf,cmap = "bone")
         plt.pause(1)
+
+        outputs = line1.exist(image,False).detach()
+        plt.imshow(outputs)
+        plt.show()
     
     plt.ioff()
     plt.show()

@@ -96,6 +96,7 @@ class EuclidLineModel(EuclidConceptModel):
         return  logpdf.exp()
 
     def exist(self,x,log = True):
+        print(x.shape)
         pdf = self.pdf(log).unsqueeze(-1)
-
+        print(pdf.shape)
         return torch.sum(pdf * x,-1)
