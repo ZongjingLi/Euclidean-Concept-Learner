@@ -36,6 +36,36 @@ class EuclidData(Dataset):
         image = self.img_transform(image.resize(self.resolution))
         return {"image":image}
 
+class EuclidConceptData(Dataset):
+    def __init__(self,split = "train",name = "angle",resolution = (128,128)):
+        super().__init__()
+        assert split in ["train","test"],print("split {} not recognized.".format(split))
+        self.root_dir = "geoclidean"
+        self.concept_name = name
+        self.split = split
+
+        self.files = os.listdir(os.path.join(
+            self.root_dir,"elements","concept_{}".format(self.concept_name),
+            self.split
+        ))
+        self.concept_path = os.path.join(
+            self.root_dir,"elements","concept_{}".format(self.concept_name),
+            self.split
+        )
+        self.img_transform = transforms.Compose(
+            [   
+                transforms.ToTensor()]
+        )
+        self.resolution = resolution
+
+    def __len__(self):return len(self.files)
+
+    def __getitem__(self,index):
+        index = index + 1
+        image = Image.open(os.path.join(self.concept_path,"{}_fin.png").format(index))
+        image = self.img_transform(image.resize(self.resolution))
+        return {"image":image}
+
 class BattlecodeData(Dataset):
     def __init__(self,split = "train",data_path = None):
         super().__init__()

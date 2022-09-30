@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     concept_dataset = EuclidData("train",name = "ccc")
+    concept_dataset = EuclidConceptData("train",name = "angle")
     print(len(concept_dataset))
     
     dataloader = DataLoader(concept_dataset,batch_size = 1)
