@@ -18,5 +18,5 @@ def gain_distribution(self,pdf):
     return 0
     
 def segment(start,end,segments):
-    outputs = [ start + (end-start) * i/segments for i in range(segments)]
+    outputs = [ start + (end-start) * i for i in range(segments)]
     return torch.stack(outputs)

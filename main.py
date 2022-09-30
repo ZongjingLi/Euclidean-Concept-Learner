@@ -13,16 +13,14 @@ start  = mu
 end    = mu * 0.5
 test_line = segment(start,end,100)
 
-print(test_line.shape)
-
 grid = make_grid().permute([1,2,0])
-
-print(grid.shape)
 
 grid_expand = grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(1).repeat([1,100,1])
 
 diff = grid_expand - test_line 
 min_diff = torch.min(diff,1).values
+
+print(min_diff.shape)
 
 leng_diff = torch.norm(min_diff,dim = 1)
 
