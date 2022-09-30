@@ -17,6 +17,10 @@ class EuclidData(Dataset):
             self.root_dir,"constraints","concept_{}".format(self.concept_name),
             self.split
         ))
+        self.concept_path = os.path.join(
+            self.root_dir,"constraints","concept_{}".format(self.concept_name),
+            self.split
+        )
         self.img_transform = transforms.Compose(
             [transforms.ToTensor()]
         )
@@ -26,7 +30,8 @@ class EuclidData(Dataset):
     def __len__(self):return len(self.files)
 
     def __getitem__(self,index):
-        image = Image.open(os.path.join(self.root_dir,"{}_fin.png").format(index))
+        index = index + 1
+        image = Image.open(os.path.join(self.concept_path,"{}_fin.png").format(index))
         image = self.img_transform(image.convert("RGB").resize(self.resolution))
         return {"image":image}
 
