@@ -106,7 +106,7 @@ def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
     for epoch in range(n_epochs):
         optim.zero_grad()
         logpdf = model.exist(x)
-        loss = 0 - torch.sum(logpdf,-1)
+        loss = 0 - torch.sum(logpdf)
         loss.backward()
         optim.step()
         logpdf = model.pdf(False)
