@@ -54,5 +54,36 @@ class EuclidPointModel(EuclidConceptModel):
         return  torch.sum(point_wise_normal.log_prob(self.grid),-1).exp()
 
     def exist(self,x,log = True):
-        pdf = self.pdf(log)
+        pdf = self.pdf(log).unsqueeze(-1)
+
+        return torch.sum(pdf * x,-1)
+
+class EuclidLineModel(EuclidConceptModel):
+    def __init__(self,point1 = None,point2 = None):
+        super().__init__()
+        
+        if point1 is None:
+            self.point1 = EuclidPointModel(None) # if there is no given point
+
+        elif isinstance(point1,EuclidPointModel):
+            self.point1 = point1 # if the parameter is a give point
+        else:
+            self.point1 = EuclidPointModel(point1) # there is fixed given point 
+        
+        if point2 is None:
+            self.point2 = EuclidPointModel(None) # if there is no given point
+
+        elif isinstance(point2,EuclidPointModel):
+            self.point2 = point2 # if the parameter is a give point
+        else:
+            self.point2 = EuclidPointModel(point2) # there is fixed given point
+
+    def pdf(self,log = True):
+        point_wise_normal = dists.Normal(self.coord,opt.scale)
+        if log:return torch.sum(point_wise_normal.log_prob(self.grid),-1)
+        return  torch.sum(point_wise_normal.log_prob(self.grid),-1).exp()
+
+    def exist(self,x,log = True):
+        pdf = self.pdf(log).unsqueeze(-1)
+
         return torch.sum(pdf * x,-1)
