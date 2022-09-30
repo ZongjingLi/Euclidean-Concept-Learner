@@ -63,7 +63,7 @@ class EuclidLineModel(EuclidConceptModel):
     def __init__(self,point1 = None,point2 = None):
         super().__init__()
 
-        self.segments = 100
+        self.segments = 50
         
         if point1 is None:
             self.point1 = EuclidPointModel(None) # if there is no given point
@@ -84,6 +84,7 @@ class EuclidLineModel(EuclidConceptModel):
 
     def pdf(self,log = True):
         grid_expand = self.grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments,1,1])
+        self.line = segment(self.point1.coord,self.point2.coord,self.segments)
         diff = grid_expand - self.line.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
 
         leng_diff = torch.norm(diff,2,dim = -1)
@@ -113,8 +114,6 @@ def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
             print(epoch,loss)
             outputs = model.pdf(False)
             plt.imshow(outputs.detach());plt.pause(0.01);plt.cla()
-            for param in model.parameters():
-                print(param)
 
         loss.backward(retain_graph = True)
         optim.step()

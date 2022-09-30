@@ -15,7 +15,7 @@ if __name__ == "__main__":
         plt.imshow(image)
         plt.pause(1)
         
-        mu = torch.tensor([100,56]).float()
+        mu = torch.tensor([10,56]).float()
         p1 = EuclidPointModel(mu)
         pdf1 = p1.pdf(False).detach()
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
         plt.pause(1)
 
-        adjust_model_to_observation(line1,image,50,True)
+        adjust_model_to_observation(line1,image,1350,True)
     
     plt.ioff()
     plt.show()
