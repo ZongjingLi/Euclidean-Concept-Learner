@@ -15,11 +15,13 @@ test_line = segment(start,end,100)
 
 grid = make_grid().permute([1,2,0])
 
-grid_expand = grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(1).repeat([1,100,1])
+grid_expand = grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([100,1,1])
 
-diff = grid_expand - test_line 
+
+
+diff = grid_expand - test_line.unsqueeze(1).repeat([1,16384,1])
 print(diff.shape)
-min_diff = torch.min(diff,dim = 1).values
+min_diff = torch.min(diff,dim = 0).values
 
 print(min_diff.shape)
 
