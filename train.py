@@ -15,26 +15,10 @@ if __name__ == "__main__":
         plt.imshow(image)
         plt.pause(1)
         
-        mu = torch.tensor([10,56]).float()
+        mu = 64 + torch.randn([2]).float()
         p1 = EuclidPointModel(mu)
-        pdf1 = p1.pdf(False).detach()
-
-        plt.imshow(pdf1,cmap = "bone")
-        plt.pause(.1)
-        
-        # evaluate the second point
-        p2 = EuclidPointModel(mu * 0.3)
-        pdf2 = p2.pdf(False).detach()
-
-        plt.imshow(pdf2,cmap = "bone")
-        plt.pause(.1)
-
+        p2 = EuclidPointModel(mu * 0.6)
         line1 = EuclidLineModel(p1,p2)
-        pdf3 = line1.pdf(False).detach()
-
-        plt.imshow(pdf3*0.1 + pdf1 + pdf2,cmap = "bone")
-
-        plt.pause(1)
 
         adjust_model_to_observation(line1,image,1350,True)
     

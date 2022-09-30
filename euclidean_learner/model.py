@@ -105,15 +105,17 @@ class EuclidLineModel(EuclidConceptModel):
 def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
     optim = torch.optim.Adam(model.parameters(), lr = opt.lr)
     for epoch in range(n_epochs):
-        loss = 0
         optim.zero_grad()
         logpdf = model.exist(x)
         
         loss = 0 - torch.sum(logpdf)
         if visualize:
-            print(epoch,loss)
+            #print(epoch,loss.detach().numpy())
             outputs = model.pdf(False)
-            plt.imshow(outputs.detach());plt.pause(0.01);plt.cla()
+            plt.subplot(1,2,1);plt.cla()
+            plt.imshow(outputs.detach())
+            plt.subplot(1,2,2);plt.cla()
+            plt.imshow(logpdf.detach());plt.pause(0.01)
 
         loss.backward(retain_graph = True)
         optim.step()
