@@ -33,6 +33,7 @@ class EuclidConceptModel(nn.Module):
         point (x,y)  line(p1,p2) circle(p1,p2)
         or the composition of these things (constraint, and)
         """
+        self.resolution = resolution
         self.euclid_program = None
         self.grid = make_grid(resolution).permute([1,2,0]).to(opt.device)
 
