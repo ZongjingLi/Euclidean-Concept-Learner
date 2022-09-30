@@ -52,3 +52,7 @@ class EuclidPointModel(EuclidConceptModel):
         point_wise_normal = dists.Normal(self.coord,opt.scale)
         if log:return torch.sum(point_wise_normal.log_prob(self.grid),-1)
         return  torch.sum(point_wise_normal.log_prob(self.grid),-1).exp()
+
+    def exist(self,x,log = True):
+        pdf = self.pdf(log)
+        return torch.sum(pdf * x,-1)
