@@ -22,12 +22,14 @@ min_diff = torch.min(diff,1).values
 
 print(min_diff.shape)
 
-leng_diff = torch.norm(min_diff,dim = 1)
+leng_diff = torch.sum(torch.abs(min_diff),-1)
 
+print(leng_diff.shape)
 
 line_norm = dists.Normal(0,1)
 
 logpdf = line_norm.log_prob(leng_diff)
+
 
 logpdf = logpdf.view([128,128,1])
 
