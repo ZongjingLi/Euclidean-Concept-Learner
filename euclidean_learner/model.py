@@ -5,6 +5,8 @@ import torch.nn as nn
 
 from torch.autograd import Variable
 
+from .config import *
+
 class ConceptModelSearch(nn.Module):
     def __init__(self):
         super().__init__()

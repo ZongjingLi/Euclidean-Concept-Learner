@@ -7,13 +7,28 @@ from moic.utils import load_json
 from PIL import Image
 
 class EuclidData(Dataset):
-    def __init__(self,split = "train"):
+    def __init__(self,split = "train",name = "ccc",resolution = (128,128)):
         super().__init__()
-        self.root = ""
-    
-    def __len__(self):return 0
+        assert split in ["train","test"],print("split {} not recognized.".format(split))
+        self.root_dir = "geoclidean"
+        self.concept_name = name
+        self.split = split
+        self.files = os.listdir(os.path.join(
+            self.root_dir,"constraints","concept_{}".format(self.concept_name),
+            self.split
+        ))
+        self.img_transform = transforms.Compose(
+            [transforms.ToTensor()]
+        )
+        self.question_file = None
+        self.resolution = resolution
 
-    def __getitem__(self,index):return index
+    def __len__(self):return len(self.files)
+
+    def __getitem__(self,index):
+        image = Image.open(os.path.join(self.root_dir,"{}_fin.png").format(index))
+        image = self.img_transform(image.convert("RGB").resize(self.resolution))
+        return {"image":image}
 
 class BattlecodeData(Dataset):
     def __init__(self,split = "train",data_path = None):
