@@ -9,6 +9,8 @@ from .config import *
 
 import torch.distributions as dists
 
+from moic.data_structure import *
+
 def point_wise_pdf(input_x,coord):
     """
     input_x: the grid of input that reprents the image
@@ -26,7 +28,7 @@ class ConceptModelSearch(nn.Module):
         return x
 
 class EuclidConceptModel(nn.Module):
-    def __init__(self,resolution = (128,128)):
+    def __init__(self,resolution = opt.resolution):
         super().__init__()
         """
         An euclid concept program is either a:
@@ -100,6 +102,20 @@ class EuclidLineModel(EuclidConceptModel):
     def exist(self,x,log = True):
         pdf = self.pdf(log).unsqueeze(-1)
         return torch.sum(pdf * x,-1)
+
+class EuclidCircleModel(EuclidConceptModel):
+    def __init__(self):super().__init__()
+
+    def forward(self):return 
+
+class EuclidCompositeModel(EuclidConceptModel):
+    def __init__(self,program):
+        super().__init__()
+        if isinstance(program,str):program = toFuncNode(program)
+
+    def pdf(self,log = True):return log
+
+    def exist(self,log = True):return log
 
 
 def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
