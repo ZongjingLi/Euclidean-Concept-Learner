@@ -18,13 +18,17 @@ grid = make_grid().permute([1,2,0])
 grid_expand = grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(1).repeat([1,100,1])
 
 diff = grid_expand - test_line 
-min_diff = torch.min(diff,1).values
+print(diff.shape)
+min_diff = torch.min(diff,dim = 1).values
 
 print(min_diff.shape)
 
 leng_diff = torch.sum(torch.abs(min_diff),-1)
 
 print(leng_diff.shape)
+
+plt.plot(leng_diff)
+plt.show()
 
 line_norm = dists.Normal(0,1)
 
