@@ -30,9 +30,10 @@ if __name__ == "__main__":
         plt.pause(1)
 
         line1 = EuclidLineModel(p1,p2)
-        pdf3 = line1.pdf(False).detach() + pdf1 + pdf2
+        pdf3 = line1.pdf(False).detach()
 
-        plt.imshow(pdf3,cmap = "bone")
+        plt.imshow(pdf3+pdf1+pdf2,cmap = "bone")
+
         plt.pause(1)
 
         outputs = line1.exist(image,False).detach()

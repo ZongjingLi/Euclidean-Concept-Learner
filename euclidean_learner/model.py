@@ -83,9 +83,9 @@ class EuclidLineModel(EuclidConceptModel):
 
     def pdf(self,log = True):
         grid_expand = self.grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments,1,1])
-        diff = grid_expand - self.line.unsqueeze(1).repeat([1,16384,1])
+        diff = grid_expand - self.line.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
 
-        leng_diff = torch.norm(diff,dim = -1)
+        leng_diff = torch.norm(diff,2,dim = -1)
         min_diff = torch.min(leng_diff,0).values
 
         line_norm = dists.Normal(0,opt.line_scale)
@@ -100,3 +100,7 @@ class EuclidLineModel(EuclidConceptModel):
         pdf = self.pdf(log).unsqueeze(-1)
         print(pdf.shape)
         return torch.sum(pdf * x,-1)
+
+
+def adjust_model_to_observation(model,x):
+    optim = torch.optim.Adam(model.parameters(), lr = opt.lr)
