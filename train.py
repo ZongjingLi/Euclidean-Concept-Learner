@@ -17,9 +17,9 @@ if __name__ == "__main__":
         plt.pause(1)
         
         mu = 64 + torch.randn([2]).float()
-        p1 = EuclidPointModel(torch.tensor([70,50]) + torch.randn([2]))
-        p2 = EuclidPointModel(mu * 0.6)
-        p3 = EuclidPointModel(mu * 0.8)
+        p1 = EuclidPointModel(10* torch.randn([2]) ** 2)
+        p2 = EuclidPointModel(10* torch.randn([2]) ** 2)
+        p3 = EuclidPointModel(10* torch.randn([2]) ** 2)
         line1 = EuclidLineModel(p1,p2)
         angle = EuclidAngleModel(p1,p2,p3)
 
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     
     plt.ioff()
     plt.show()
-
+    print("done")
     """
             # p1 existence map
         evl = p1.exist(image,True).detach()

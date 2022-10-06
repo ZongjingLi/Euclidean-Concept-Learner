@@ -58,8 +58,8 @@ class EuclidPointModel(EuclidConceptModel):
 
     def exist(self,x,log = True):
         pdf = self.pdf(log).unsqueeze(-1)
-
-        return torch.sum(pdf * x,-1)
+        return torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
+        # return torch.sum(pdf * x,-1)
 
 class EuclidLineModel(EuclidConceptModel):
     def __init__(self,point1 = None,point2 = None):
@@ -101,7 +101,7 @@ class EuclidLineModel(EuclidConceptModel):
 
     def exist(self,x,log = True):
         pdf = self.pdf(log).unsqueeze(-1)
-        return -torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
+        return torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
         #return torch.sum(pdf * x,-1)
 
 class EuclidAngleModel(EuclidConceptModel):
@@ -155,7 +155,8 @@ class EuclidAngleModel(EuclidConceptModel):
 
     def exist(self,x,log = True):
         pdf = self.pdf(log).unsqueeze(-1)
-        return -torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
+
+        return torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
         #return torch.sum(pdf * x,-1)
 
 class EuclidCircleModel(EuclidConceptModel):
@@ -179,7 +180,7 @@ def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
         optim.zero_grad()
         logpdf = model.exist(x)
         
-        loss = 0 - torch.sum(logpdf)
+        loss =  torch.sum(logpdf)
         if visualize:
             #print(epoch,loss.detach().numpy())
             outputs = model.pdf(False)
