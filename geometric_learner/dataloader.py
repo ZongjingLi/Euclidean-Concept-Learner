@@ -68,5 +68,6 @@ class EuclidConceptData(Dataset):
         image = Image.open(os.path.join(self.concept_path,"{}_fin.png").format(index))
         image = self.img_transform(image.resize(self.resolution))
         concept_file = open(os.path.join(self.root_dir,"elements","concept_{}".format(self.concept_name),"concept.txt"), "r")
-        programs = concept_file.readlines()
+        raw_programs = concept_file.readlines()
+        programs = [term[1] for term in raw_programs]
         return {"image":image,"programs":programs}
