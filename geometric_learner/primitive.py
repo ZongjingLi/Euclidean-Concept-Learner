@@ -1,4 +1,3 @@
-from turtle import circle
 import torch
 import torch.nn as nn
 
@@ -7,6 +6,8 @@ from moic.data_structure import *
 from moic.mklearn.nn.functional_net import *
 
 import networkx as nx
+#from .config import *
+from config import *
 
 def ptype(inputs):
     if inputs[0] == "c": return "circle"
@@ -29,15 +30,30 @@ def parse_geoclidean(programs = dgc):
         outputs.append(func_node_form)
     return outputs
 
+class SetProp(nn.Module):
+    def __init__(self,model_opt):
+        super().__init__()
+
+def find_connection(node,graph,loc = 0):
+    outputs = []
+    for edge in graph.edges:
+        if edge[loc] == node:outputs.append(edge[int(not loc)])
+    return outputs
 
 class GeometricStructure(nn.Module):
     def __init__(self,program = "p1()"):
         super().__init__()
-        self.points  = []
-        self.objects = []
         self.realized = False
         self.struct = None
         self.visible = []
+        self.concept_embedding = []
+        self.line_propagator = None
+        self.circle_propagator  = None
+        self.point_propagator = None
+
+    def clear(self):
+        self.realized = False # clear the state of dag, and the realization
+        self.struct   = None  # clear the state of concept struct
 
     def make_dag(self,concept_struct):
         """
@@ -67,16 +83,26 @@ class GeometricStructure(nn.Module):
 
         for program in concept_struct:parse_node(program)
         self.struct = realized_graph
+        self.realized = True
     
         return realized_graph
 
     def realize(self):
         # given every node a vector representation
-
         # 1. start the upward propagation
+        upward_memory_storage   = {}
+        def quest_down(node):
+            if node in upward_memory_storage:return upward_memory_storage[node]# is it is calculated, nothing happens
+            primitive_type =  ptype(node)
+            if primitive_type == "circle": # use the circle propagator to calculate mlpc(cat([ec1,ec2]))
+                pass
+            if primitive_type == "line":
+                pass
+            if primitive_type == "point":
+                pass
 
         # 2. start the downward propagation
-
+        downward_memory_storage = {}
         return
 
     def sample(self):
@@ -108,3 +134,5 @@ if __name__ == "__main__":
     g = model.make_dag(dgc)
     nx.draw(g, with_labels=True, font_weight='bold')
     plt.show()
+
+    print(g.edges)
