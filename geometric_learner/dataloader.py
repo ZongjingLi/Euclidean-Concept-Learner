@@ -35,7 +35,7 @@ class EuclidData(Dataset):
         index = index + 1
         image = Image.open(os.path.join(self.concept_path,"{}_fin.png").format(index))
         image = self.img_transform(image.resize(self.resolution))
-        concept_file = open(os.path.join(self.concept_path,"concept.txt"), "r")
+        concept_file = open(os.path.join(self.root_dir,"constraints","concept_{}".format(self.concept_name),"concept.txt"), "r")
         programs = concept_file.readlines()
         return {"image":image,"programs":programs}
 
@@ -67,6 +67,6 @@ class EuclidConceptData(Dataset):
         index = index + 1
         image = Image.open(os.path.join(self.concept_path,"{}_fin.png").format(index))
         image = self.img_transform(image.resize(self.resolution))
-        concept_file = open(os.path.join(self.concept_path,"concept.txt"), "r")
+        concept_file = open(os.path.join(self.root_dir,"elements","concept_{}".format(self.concept_name),"concept.txt"), "r")
         programs = concept_file.readlines()
         return {"image":image,"programs":programs}
