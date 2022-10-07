@@ -7,7 +7,8 @@ loader = DataLoader(dataset,batch_size = 1)
 struct = GeometricStructure()
 
 for sample in loader:
-    for t in sample["programs"]:print(t)
+
     programs = [term[0] for term in sample["programs"]]
-    struct.make_dag(programs)
-    print("")
+    g = struct.make_dag(programs)
+    nx.draw_networkx(g)
+    plt.show()
