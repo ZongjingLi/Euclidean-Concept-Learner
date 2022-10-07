@@ -13,3 +13,4 @@ The euclid concept learner model consists of three components, 1) an image encod
 
 ## failed experiments
 The first thought to write such a model will be a neual-heusitc search based on the possiblity of an input image is a realization of concept model $c$: $Pr[c|x]$. One may want to use the method of soft line and points to evaluate the probability or cross-entropy of the input image is explained by concept model. However, there are several problems during the test phase.  
+![](results/angle_concept1.png)
