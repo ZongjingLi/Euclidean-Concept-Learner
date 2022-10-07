@@ -173,6 +173,11 @@ class CompositeModel(ConceptModel):
         super().__init__()
         # every composite model is an 
         if isinstance(program,str):program = toFuncNode(program)
+    
+    def realize(self):
+        def parse_node(node):
+            pass
+        return parse_node(self.program)
 
     def pdf(self,log = True):return log
 
