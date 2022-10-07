@@ -71,6 +71,12 @@ class GeometricStructure(nn.Module):
         return realized_graph
 
     def realize(self):
+        # given every node a vector representation
+
+        # 1. start the upward propagation
+
+        # 2. start the downward propagation
+
         return
 
     def sample(self):
@@ -95,7 +101,7 @@ class RenderField(nn.Module):
 
 if __name__ == "__main__":
     model = GeometricStructure()
-    g = model.make_dag([toFuncNode("l1(p1(),p2())"),toFuncNode("l2(p2(),p3())"),toFuncNode("l3(p3(),p1())")])
+    g = model.make_dag(["l1 = line(p1(),p2())","l2 = line(p2(),p3())","l3 = line(p3(),p1())"])
     nx.draw(g, with_labels=True, font_weight='bold')
     plt.show()
     
