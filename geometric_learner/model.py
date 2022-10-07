@@ -25,7 +25,7 @@ class GeometricAutoEncoder(nn.Module):
         if isinstance(concept_struct,str):print("concept struct is an instance")
         if concept_struct is None:concept_struct = self.find_concept_struct(image)
         encoder_features = self.encoder(image) # encoder the global prior feature
-
+        print(encoder_features.shape)
         self.structure.make_dag(concept_struct)
         self.structure.realize(encoder_features) # use the 
 
