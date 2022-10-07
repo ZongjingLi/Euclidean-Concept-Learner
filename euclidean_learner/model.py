@@ -10,6 +10,7 @@ from .config import *
 import torch.distributions as dists
 
 from moic.data_structure import *
+from moic.mklearn.nn.functional_net import FCBlock
 
 def point_wise_pdf(input_x,coord):
     """
@@ -173,22 +174,34 @@ class CompositeModel(ConceptModel):
 
     def exist(self,log = True):return log
 
+# this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 
+# map that represents the attention realm on the grid domain
+
+class RenderField(nn.Module):
+    def __init__(self,opt):
+        super().__init__()
+        self.render_field = FCBlock(132,3,2+opt.info_dim,1)
+    
+    def forward(self,grid,infos):
+        # input grid: BxWxHx2 input info: BxS
+        B,W,H,_ = grid.shape
+        expand_info = infos.unsqueeze(1).unsqueeze(1)
+        expand_info = expand_info.repeat([1,W,H,1])
+        return self.render_field(torch.cat(grid,expand_info),-1)
+
+# use optimizer to deform the current configuration of points and constraints
 
 def adjust_model_to_observation(model,x,n_epochs = 50,visualize = True):
     optim = torch.optim.Adam(model.parameters(), lr = opt.lr)
     for epoch in range(n_epochs):
         optim.zero_grad()
-        logpdf = model.exist(x)
-        
-        loss =  torch.sum(logpdf)
+        cross_entropy_loss = model.exist(x)
+        loss =  torch.sum(cross_entropy_loss)
         if visualize:
-            
             print(epoch,loss.detach().numpy())
             outputs = model.pdf(False)
-            plt.subplot(1,2,1);plt.cla()
-            plt.imshow(outputs.detach())
-            plt.subplot(1,2,2);plt.cla()
-            plt.imshow(logpdf.detach());plt.pause(0.01)
+            plt.subplot(1,2,1);plt.cla();plt.imshow(outputs.detach())
+            plt.subplot(1,2,2);plt.cla();plt.imshow(cross_entropy_loss.detach());plt.pause(0.01)
 
         loss.backward(retain_graph = True)
         optim.step()
