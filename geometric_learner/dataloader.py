@@ -35,7 +35,9 @@ class EuclidData(Dataset):
         index = index + 1
         image = Image.open(os.path.join(self.concept_path,"{}_fin.png").format(index))
         image = self.img_transform(image.resize(self.resolution))
-        return {"image":image}
+        concept_file = open(os.path.join(self.concept_path,"concept.txt"), "r")
+        programs = concept_file.readlines()
+        return {"image":image,"programs":programs}
 
 class EuclidConceptData(Dataset):
     def __init__(self,split = "train",name = "angle",resolution = model_opt.resolution):
@@ -65,4 +67,6 @@ class EuclidConceptData(Dataset):
         index = index + 1
         image = Image.open(os.path.join(self.concept_path,"{}_fin.png").format(index))
         image = self.img_transform(image.resize(self.resolution))
-        return {"image":image}
+        concept_file = open(os.path.join(self.concept_path,"concept.txt"), "r")
+        programs = concept_file.readlines()
+        return {"image":image,"programs":programs}

@@ -1,8 +1,10 @@
-from config import *
-from encoder import *
+from .config     import *
+from .encoder    import *
+from .dataloader import *
 
 import torch
 import torch.nn as nn
+
 
 # This is used to create a geometric auto-encoder
 
@@ -33,3 +35,6 @@ class GeometricAutoEncoder(nn.Module):
 
     def namomo(self):return "namomo"
 
+
+if __name__ == "__main__":
+    pass

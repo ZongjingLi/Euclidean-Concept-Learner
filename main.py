@@ -1,4 +1,6 @@
-from euclidean_learner.model import *
 
+from geometric_learner.model import *
 
-con1 = CompositeModel("c1(p1(),p2())")
+dataset = EuclidConceptData("angle")
+for sample in dataset:
+    print(sample["programs"])
