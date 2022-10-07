@@ -27,7 +27,7 @@ class ConceptModelSearch(nn.Module):
     def forward(self,x):
         return x
 
-class EuclidConceptModel(nn.Module):
+class ConceptModel(nn.Module):
     def __init__(self,resolution = opt.resolution):
         super().__init__()
         """
@@ -46,7 +46,7 @@ class EuclidConceptModel(nn.Module):
         """
         return 0
 
-class EuclidPointModel(EuclidConceptModel):
+class PointModel(ConceptModel):
     def __init__(self,coord = None):
         super().__init__()
         self.coord = nn.Parameter(coord) if coord is not None else nn.Parameter(torch.randn([1,2]))
@@ -61,27 +61,27 @@ class EuclidPointModel(EuclidConceptModel):
         return torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
         # return torch.sum(pdf * x,-1)
 
-class EuclidLineModel(EuclidConceptModel):
+class LineModel(ConceptModel):
     def __init__(self,point1 = None,point2 = None):
         super().__init__()
 
         self.segments = 50
         
         if point1 is None:
-            self.point1 = EuclidPointModel(None) # if there is no given point
+            self.point1 = PointModel(None) # if there is no given point
 
-        elif isinstance(point1,EuclidPointModel):
+        elif isinstance(point1,PointModel):
             self.point1 = point1 # if the parameter is a give point
         else:
-            self.point1 = EuclidPointModel(point1) # there is fixed given point 
+            self.point1 = PointModel(point1) # there is fixed given point 
         
         if point2 is None:
-            self.point2 = EuclidPointModel(None) # if there is no given point
+            self.point2 = PointModel(None) # if there is no given point
 
-        elif isinstance(point2,EuclidPointModel):
+        elif isinstance(point2,PointModel):
             self.point2 = point2 # if the parameter is a give point
         else:
-            self.point2 = EuclidPointModel(point2) # there is fixed given point
+            self.point2 = PointModel(point2) # there is fixed given point
         self.line = segment(self.point1.coord,self.point2.coord,self.segments)
 
     def pdf(self,log = True):
@@ -104,36 +104,36 @@ class EuclidLineModel(EuclidConceptModel):
         return torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
         #return torch.sum(pdf * x,-1)
 
-class EuclidAngleModel(EuclidConceptModel):
+class AngleModel(ConceptModel):
     def __init__(self,point1 = None,point2 = None,point3 = None):
         super().__init__()
 
         self.segments = 50
         
         if point1 is None:
-            self.point1 = EuclidPointModel(None) # if there is no given point
+            self.point1 = PointModel(None) # if there is no given point
 
-        elif isinstance(point1,EuclidPointModel):
+        elif isinstance(point1,PointModel):
             self.point1 = point1 # if the parameter is a give point
         else:
-            self.point1 = EuclidPointModel(point1) # there is fixed given point 
+            self.point1 = PointModel(point1) # there is fixed given point 
         
         if point2 is None:
-            self.point2 = EuclidPointModel(None) # if there is no given point
+            self.point2 = PointModel(None) # if there is no given point
 
-        elif isinstance(point2,EuclidPointModel):
+        elif isinstance(point2,PointModel):
             self.point2 = point2 # if the parameter is a give point
         else:
-            self.point2 = EuclidPointModel(point2) # there is fixed given point
+            self.point2 = PointModel(point2) # there is fixed given point
         self.line = segment(self.point1.coord,self.point2.coord,self.segments)
 
         if point3 is None:
-            self.point3 = EuclidPointModel(None) # if there is no given point
+            self.point3 = PointModel(None) # if there is no given point
 
-        elif isinstance(point3,EuclidPointModel):
+        elif isinstance(point3,PointModel):
             self.point3 = point3 # if the parameter is a give point
         else:
-            self.point3 = EuclidPointModel(point3) # there is fixed given point
+            self.point3 = PointModel(point3) # there is fixed given point
         self.line = segment(self.point1.coord,self.point2.coord,self.segments)
 
     def pdf(self,log = True):
@@ -159,12 +159,12 @@ class EuclidAngleModel(EuclidConceptModel):
         return torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
         #return torch.sum(pdf * x,-1)
 
-class EuclidCircleModel(EuclidConceptModel):
+class EuclidCircleModel(ConceptModel):
     def __init__(self):super().__init__()
 
     def forward(self):return 
 
-class EuclidCompositeModel(EuclidConceptModel):
+class EuclidCompositeModel(ConceptModel):
     def __init__(self,program):
         super().__init__()
         if isinstance(program,str):program = toFuncNode(program)
