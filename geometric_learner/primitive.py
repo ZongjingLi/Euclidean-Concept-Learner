@@ -16,6 +16,12 @@ def ptype(inputs):
 # and realize the concept and make sample of concepts. This is practically the decoder part of the 
 # Geometric AutoEncoder model
 
+dgc = "l1 = line(p1(), p2()),c1* = circle(p1(), p2()),c2* = circle(p2(), p1()),l2 = line(p1(), p3(c1, c2)),'l3 = line(p2(), p3())),"
+
+def parse_geoclidean(program = dgc):
+    return []
+
+
 class GeometricStructure(nn.Module):
     def __init__(self,program = "p1()"):
         super().__init__()
@@ -29,6 +35,10 @@ class GeometricStructure(nn.Module):
         input:  the concept struct is a list of func nodes
         output: make self.struct as a list of nodes and edges
         """
+        realize_objects = {}
+        def parse_node(node):
+            node_name = node.token
+            if node_name in realize_objects:return realize_objects[node_name]
         return 0
 
     def realize(self):
