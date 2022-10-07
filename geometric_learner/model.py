@@ -26,6 +26,10 @@ class GeometricAutoEncoder(nn.Module):
 
         self.structure.make_dag(concept_struct)
         self.structure.realize(encoder_features) # use the 
-        return image
+
+        sample = self.structure.sample()
+
+        return sample
 
     def namomo(self):return "namomo"
+
