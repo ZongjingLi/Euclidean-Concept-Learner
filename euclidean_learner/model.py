@@ -156,8 +156,7 @@ class AngleModel(ConceptModel):
 
     def exist(self,x,log = True):
         pdf = self.pdf(log).unsqueeze(-1)
-
-        return torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
+        return torch.binary_cross_entropy_with_logits(pdf,x)
         #return torch.sum(pdf * x,-1)
 
 class CircleModel(ConceptModel):
@@ -165,9 +164,13 @@ class CircleModel(ConceptModel):
 
     def forward(self):return 
 
+# every euclidean object is an realization of a composite model.
+# a composite model is defined over a set of points and objects
+
 class CompositeModel(ConceptModel):
     def __init__(self,program):
         super().__init__()
+        # every composite model is an 
         if isinstance(program,str):program = toFuncNode(program)
 
     def pdf(self,log = True):return log
