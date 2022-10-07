@@ -35,6 +35,7 @@ class GeometricStructure(nn.Module):
         self.objects = []
         self.realized = False
         self.struct = None
+        self.visible = []
 
     def make_dag(self,concept_struct):
         """
@@ -43,16 +44,19 @@ class GeometricStructure(nn.Module):
         """
         if isinstance(concept_struct,str):concept_struct = parse_geoclidean(concept_struct)
         realized_graph  = nx.DiGraph()
+        self.visible = []
 
         def parse_node(node):
             node_name = node.token
             
             # if the object is already in the graph, jsut return the name of the concept
             if node_name in realized_graph.nodes: return node_name
-            visible = False if node_name[-1] == "*" else True
-            realized_graph.add_node([node_name,visible])
+            try:visible = False if node_name[-1] == "*" else True
+            except:visible = False
+            realized_graph.add_node(node_name)
 
             for child in node.children:
+                if visible:self.visible.append(node_name)
                 realized_graph.add_edge(parse_node(child),node_name) # point from child to current node
     
             return node_name
