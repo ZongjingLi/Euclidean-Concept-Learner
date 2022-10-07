@@ -8,7 +8,7 @@ from PIL import Image
 from .config import *
 
 class EuclidData(Dataset):
-    def __init__(self,split = "train",name = "ccc",resolution = opt.resolution):
+    def __init__(self,split = "train",name = "ccc",resolution = model_opt.resolution):
         super().__init__()
         assert split in ["train","test"],print("split {} not recognized.".format(split))
         self.root_dir = "geoclidean"
@@ -38,7 +38,7 @@ class EuclidData(Dataset):
         return {"image":image}
 
 class EuclidConceptData(Dataset):
-    def __init__(self,split = "train",name = "angle",resolution = opt.resolution):
+    def __init__(self,split = "train",name = "angle",resolution = model_opt.resolution):
         super().__init__()
         assert split in ["train","test"],print("split {} not recognized.".format(split))
         self.root_dir = "geoclidean"
