@@ -96,16 +96,9 @@ class RenderField(nn.Module):
 if __name__ == "__main__":
     model = GeometricStructure()
     g = model.make_dag([toFuncNode("l1(p1(),p2())"),toFuncNode("l2(p2(),p3())"),toFuncNode("l3(p3(),p1())")])
-    print(g.nodes)
-    print(g.edges)
     nx.draw(g, with_labels=True, font_weight='bold')
     plt.show()
-
-    for term in parse_geoclidean(dgc):
-        print(term)
     
     g = model.make_dag(dgc)
-    print(g.nodes)
-    print(g.edges)
     nx.draw(g, with_labels=True, font_weight='bold')
     plt.show()
