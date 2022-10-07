@@ -5,10 +5,16 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from moic.mklearn.nn.functional_net import *
 
+import networkx as nx
+
 def ptype(inputs):
     if inputs[0] == "c": return "circle"
     if inputs[0] == "l": return "line" 
     if inputs[0] == "p": return "point"
+
+# geometric structure model. This is used to create the geometric concept graph
+# and realize the concept and make sample of concepts. This is practically the decoder part of the 
+# Geometric AutoEncoder model
 
 class GeometricStructure(nn.Module):
     def __init__(self,program = "p1()"):
@@ -19,6 +25,10 @@ class GeometricStructure(nn.Module):
         self.struct = None
 
     def make_dag(self,concept_struct):
+        """
+        input:  the concept struct is a list of func nodes
+        output: make self.struct as a list of nodes and edges
+        """
         return 0
 
     def realize(self):
