@@ -17,15 +17,17 @@ def ptype(inputs):
 # and realize the concept and make sample of concepts. This is practically the decoder part of the 
 # Geometric AutoEncoder model
 
-dgc = "l1 = line(p1(), p2()),c1* = circle(p1(), p2()),c2* = circle(p2(), p1()),l2 = line(p1(), p3(c1, c2)),'l3 = line(p2(), p3())),"
+dgc = ["l1 = line(p1(), p2())","c1* = circle(p1(), p2())","c2* = circle(p2(), p1())","l2 = line(p1(), p3(c1, c2))","l3 = line(p2(), p3()))"]
 
-def parse_geoclidean(program = dgc):
-    left_bracket = 0
-    for t in program:
-        if t == "(" or t == "(":left_bracket += 1
-        if t == ")" or t == ")":left_bracket -= 1
-        if left_bracket == 0:pass
-    return []
+def parse_geoclidean(programs = dgc):
+    outputs = []
+    for program in programs:
+        left,right = program.split("=")
+        left = left.replace(" ","");right = right.replace(" ","")
+        func_node_form = toFuncNode(right)
+        func_node_form.token = left
+        outputs.append(func_node_form)
+    return outputs
 
 
 class GeometricStructure(nn.Module):
@@ -42,7 +44,7 @@ class GeometricStructure(nn.Module):
         input:  the concept struct is a list of func nodes
         output: make self.struct as a list of nodes and edges
         """
-        if isinstance(concept_struct,str):concept_struct = parse_geoclidean(concept_struct)
+        if isinstance(concept_struct[0],str):concept_struct = parse_geoclidean(concept_struct)
         realized_graph  = nx.DiGraph()
         self.visible = []
 
@@ -51,10 +53,12 @@ class GeometricStructure(nn.Module):
             
             # if the object is already in the graph, jsut return the name of the concept
             if node_name in realized_graph.nodes: return node_name
-            try:visible = False if node_name[-1] == "*" else True
-            except:visible = False
+            if node_name == "":# if this place is a void location.
+                node_name = "<V>";visible = False
+            elif node_name[-1] == "*":
+                node_name = node_name.replace("*","");visible =False
+            else:visible = True
             realized_graph.add_node(node_name)
-
             for child in node.children:
                 if visible:self.visible.append(node_name)
                 realized_graph.add_edge(parse_node(child),node_name) # point from child to current node
@@ -97,7 +101,10 @@ if __name__ == "__main__":
     nx.draw(g, with_labels=True, font_weight='bold')
     plt.show()
 
-    g = model.make_dag([toFuncNode("l1(p1(),p2())"),toFuncNode("l2(p2(),p3())"),toFuncNode("l3(p3(),p1())")])
+    for term in parse_geoclidean(dgc):
+        print(term)
+    
+    g = model.make_dag(dgc)
     print(g.nodes)
     print(g.edges)
     nx.draw(g, with_labels=True, font_weight='bold')
