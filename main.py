@@ -2,7 +2,7 @@
 from geometric_learner.model import *
 from geometric_learner.primitive import *
 
-dataset = EuclidConceptData("train","eq_t")
+dataset = EuclidConceptData("train","diameter")
 loader = DataLoader(dataset,batch_size = 1)
 struct = GeometricStructure()
 
