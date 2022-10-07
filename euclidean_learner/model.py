@@ -159,12 +159,12 @@ class AngleModel(ConceptModel):
         return torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
         #return torch.sum(pdf * x,-1)
 
-class EuclidCircleModel(ConceptModel):
+class CircleModel(ConceptModel):
     def __init__(self):super().__init__()
 
     def forward(self):return 
 
-class EuclidCompositeModel(ConceptModel):
+class CompositeModel(ConceptModel):
     def __init__(self,program):
         super().__init__()
         if isinstance(program,str):program = toFuncNode(program)

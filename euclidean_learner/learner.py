@@ -5,7 +5,10 @@ from config import * # load the geometric model config
 """
 This Geometric Learner is practically a Auto-Encoder given a fixed concept structure
     (encoder): geometric encoder that encoder the global information
-    (decoder): the concept structure created by the 
+    (decoder): the concept structure that use the latent-z as prior to realize a concept
+    
+    problems: how is the concept model realized based on the latent-z
+              what is the structure of concept relation model
 """
 class GeometricLearner(nn.Module):
     def __init__(self,model_opt):
