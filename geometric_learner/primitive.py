@@ -94,10 +94,11 @@ class GeometricStructure(nn.Module):
         def quest_down(node):
             if node in upward_memory_storage:return upward_memory_storage[node]# is it is calculated, nothing happens
             primitive_type =  ptype(node)
+            connect_to     =  find_connection(node,self.struct,int = 1)
             if primitive_type == "circle": # use the circle propagator to calculate mlpc(cat([ec1,ec2]))
-                pass
+                assert len(connect_to) == 2,print("the circle is connected to {} parameters (2 expected).".format(len(connect_to)))
             if primitive_type == "line":
-                pass
+                assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
             if primitive_type == "point":
                 pass
 
