@@ -49,7 +49,8 @@ class GeometricStructure(nn.Module):
             
             # if the object is already in the graph, jsut return the name of the concept
             if node_name in realized_graph.nodes: return node_name
-            realized_graph.add_node(node_name)
+            visible = False if node_name[-1] == "*" else True
+            realized_graph.add_node([node_name,visible])
 
             for child in node.children:
                 realized_graph.add_edge(parse_node(child),node_name) # point from child to current node
