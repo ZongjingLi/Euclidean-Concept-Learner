@@ -101,6 +101,7 @@ class LineModel(ConceptModel):
         return  logpdf.exp()
 
     def exist(self,x,log = True):
+        # return the binary entropy of there is an exact line in the image
         pdf = self.pdf(log).unsqueeze(-1)
         return torch.sum(torch.binary_cross_entropy_with_logits(pdf,x),-1)
         #return torch.sum(pdf * x,-1)
