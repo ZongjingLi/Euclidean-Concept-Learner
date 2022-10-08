@@ -72,7 +72,8 @@ class MessageProp(nn.Module):
         super().__init__()
         self.update_map   = nn.Linear(opt.geometric_latent_dim,opt.geometric_latent_dim)
         self.message_map  = nn.Linear(opt.geometric_latent_dim,opt.geometric_latent_dim)
-        self.joint_update = FCBlock(132,2,opt.encoder_latent_dim + opt.geometric_latent_dim,opt.geometric_latent_dim)
+        self.joint_update = FCBlock(132,2,2 *  opt.geometric_latent_dim,opt.geometric_latent_dim)
+        self.opt = opt
 
     def forward(self,signal,components):
         if not components: 
@@ -202,6 +203,8 @@ class GeometricStructure(nn.Module):
             return update_component
         
         for node in self.struct.nodes:quest_down(node)
+        # update the memory unit after the propagation
+        self.upward_memory_storage   = upward_memory_storage
 
         # 2. start the downward propagation. (maybe not)
         downward_memory_storage   = {}
@@ -216,10 +219,9 @@ class GeometricStructure(nn.Module):
         
             downward_memory_storage[node] = update_component 
             return update_component
-        #for node in self.struct: quest_up(node)
+        for node in self.struct: quest_up(node)
 
         # update the memory unit of the propagation
-        self.upward_memory_storage   = upward_memory_storage
         self.downward_memory_storage = downward_memory_storage
         return 
 
