@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # prepare the geometric autoencoder model
     model  = GeometricAutoEncoder(model_opt)
 
-    print(model)
+    print(model);plt.ion()
     
     # draw samples from the dataloader
     for sample in loader:
@@ -27,6 +27,11 @@ if __name__ == "__main__":
 
         # plot the concept structure found
         g = model.decoder.struct
-        nx.draw_networkx(g)
+        
+        plt.figure("concept dag");
+        plt.cla();nx.draw_networkx(g)
+        plt.figure("inputs vs recons")
+        plt.subplot(1,2,1);plt.cla();plt.imshow(sample["image"][0].permute([1,2,0]))
+        plt.subplot(1,2,2);plt.cla();plt.imshow(sample["image"][0].permute([1,2,0]))
         #nx.draw_shell(g,with_labels = True)
-        plt.show()
+        plt.pause(1)

@@ -6,6 +6,8 @@ import torch.distributions as dists
 
 import numpy as np
 
+import math
+
 import matplotlib.pyplot as plt
 from moic.data_structure import *
 from moic.mklearn.nn.functional_net import *
@@ -235,20 +237,25 @@ class GeometricStructure(nn.Module):
             if node in calculated_pdf:return calculated_pdf[node] # just take the memory if this node is calculated
             node_type  = ptype(node)
             connect_to = find_connection(self.struct,loc = 1) # find all the points that this point connected by
-            if node not in self.visible:return 
 
             if node_type == "line":
                 assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
                 point1_pdf   = Pr(connect_to[0]);point2_pdf = Pr(connect_to[1])
                 point1_coord = sample_point(point1_pdf);point2_coord = sample_point(point2_pdf)
+                segments = math.abs(point1_coord[0] - point2_coord[0])
 
-                line = segment(point1_coord,point2_coord,self.opt.segments)
-                print(self.line.shape)
-                
-                line_locs = []
+                grid_expand = self.grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments,1,1])
+                self.line = segment(point1_coord,point2_coord,segments)
+                diff = grid_expand - self.line.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
 
-                if log:update_pdf = logpdf
-                else:update_pdf = logpdf.exp()
+                leng_diff = torch.norm(diff,2,dim = -1)
+                min_diff = torch.min(leng_diff,0).values
+
+                line_norm = dists.Normal(0,self.opt.line_scale)
+                logpdf = line_norm.log_prob(min_diff)
+
+                logpdf = logpdf.view(self.opt.resolution)
+                update_pdf = logpdf.exp() if not log else logpdf
 
 
             if node_type == "circle":
@@ -266,13 +273,21 @@ class GeometricStructure(nn.Module):
                 else:
                     constraint = [Pr(obj) for obj in connect_to]
                     update_pdf = intersect_pdf(constraint)
-            grid = union_pdf(update_pdf,grid) # add the pdf onto the grid
+
+            if node in self.visible: grid = union_pdf(update_pdf,grid) # add the pdf onto the grid
         
         # for node in self.struct.nodes:Pr(node)
         return output_grid
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 
 # map that represents the attention realm on the grid domain
+
+class PointDecoder(nn.Module):
+    def __init__(self,in_dim):
+        super().__init__()
+        self.raw_decoder = FCBlock(132,4,in_dim,2)
+        self.alpha = 7;self.beta = 64
+    def forward(self,x):return torch.sigmoid( self.alpha *  self.raw_decoder(x) ) * self.beta
 
 class RenderField(nn.Module):
     def __init__(self,opt):
