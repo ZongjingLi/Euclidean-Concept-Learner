@@ -30,6 +30,16 @@ def parse_geoclidean(programs = dgc):
         outputs.append(func_node_form)
     return outputs
 
+def union_pdf(components):
+    first_comp = components[0]
+    for comp in components: first_comp = torch.max(comp,first_comp).values
+    return first_comp
+
+def intersect_pdf(components):
+    first_comp = components[0]
+    for comp in components: first_comp = torch.min(comp,first_comp).values
+    return first_comp
+
 class PointProp(nn.Module):
     def __init__(self,opt):
         super().__init__()
@@ -66,6 +76,9 @@ class GeometricStructure(nn.Module):
         self.line_propagator = FCBlock(132,2,opt.geometric_latent_dim * 2, opt.geometric_latent_dim)
         self.circle_propagator  = FCBlock(132,2,opt.geometric_latent_dim * 2, opt.geometric_latent_dim)
         self.point_propagator = PointProp(opt)
+
+        # graph signal storage
+        self.upward_memory_storage = None
 
     def clear(self):
         self.realized = False # clear the state of dag, and the realization
@@ -113,13 +126,11 @@ class GeometricStructure(nn.Module):
             connect_to     =  find_connection(node,self.struct,loc = 1)
             if primitive_type == "circle": # use the circle propagator to calculate mlpc(cat([ec1,ec2]))
                 assert len(connect_to) == 2,print("the circle is connected to {} parameters (2 expected).".format(len(connect_to)))
-                left_component   = quest_down(connect_to[0])
-                right_component  = quest_down(connect_to[1])
+                left_component   = quest_down(connect_to[0]);right_component  = quest_down(connect_to[1])
                 update_component = self.circle_propagator(torch.cat([left_component,right_component],-1))
             if primitive_type == "line":
                 assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
-                start_component  = quest_down(connect_to[0])
-                end_component    = quest_down(connect_to[1])
+                start_component  = quest_down(connect_to[0]);end_component    = quest_down(connect_to[1])
                 update_component = self.line_propagator(torch.cat([start_component,end_component],-1))
             if primitive_type == "point":
                 point_prop_inputs = []
@@ -138,11 +149,18 @@ class GeometricStructure(nn.Module):
 
         # 2. start the downward propagation. (maybe not)
         # TODO: downward propagation of the dag 
+        self.upward_memory_storage = upward_memory_storage
         return
 
     def sample(self):
         assert self.struct is not None,print("the dag struct is None")
         assert self.realized,print("This concept dag is not realized yet")
+
+        def Pr(node):
+            pass
+        
+        for node in self.struct.nodes:Pr(node)
+        return 
         
 
 

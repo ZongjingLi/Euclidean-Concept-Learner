@@ -10,7 +10,7 @@ train_opt = train_parser.parse_args(args = [])
 
 if __name__ == "__main__":
     
-    dataset = EuclidConceptData("train","diameter")
+    dataset = EuclidConceptData("train","rhombus")
     loader  = DataLoader(dataset,batch_size = 1)
 
     model  = GeometricAutoEncoder(model_opt)
