@@ -64,12 +64,20 @@ def find_connection(node,graph,loc = 0):
         if edge[loc] == node:outputs.append(edge[int(not loc)])
     return outputs
 
+def make_grid(resolution = model_opt.resolution):
+    # make the grid with the shape of [w,h]
+    x = torch.linspace(0,resolution[0],resolution[0])
+    y = torch.linspace(0,resolution[1],resolution[1])
+    grid = torch.meshgrid(x,y)
+    return torch.stack(grid)
+
 class GeometricStructure(nn.Module):
     def __init__(self,opt = model_opt):
         super().__init__()
         # structure stored in the realization
         self.realized = False
         self.struct = None
+        self.grid   = None
         self.visible = []
 
         # TODO: implement another version of the line propagator so the input is invariant
@@ -80,7 +88,14 @@ class GeometricStructure(nn.Module):
         # graph signal storage
         self.upward_memory_storage = None
 
+        # decode the semantics of the signal vector
+        self.signal_decoder = RenderField(model_opt)
+        self.opt = opt
+
+        self.clear()
+
     def clear(self):
+        self.grid     =  make_grid(self.opt.resolution).permute([1,2,0]).to(self.opt.device)
         self.realized = False # clear the state of dag, and the realization
         self.struct   = None  # clear the state of concept struct
 
@@ -155,14 +170,13 @@ class GeometricStructure(nn.Module):
     def sample(self):
         assert self.struct is not None,print("the dag struct is None")
         assert self.realized,print("This concept dag is not realized yet")
-
+        
+        output_grid = self.grid
         def Pr(node):
             pass
         
         for node in self.struct.nodes:Pr(node)
         return 
-        
-
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 
 # map that represents the attention realm on the grid domain
@@ -170,14 +184,15 @@ class GeometricStructure(nn.Module):
 class RenderField(nn.Module):
     def __init__(self,opt):
         super().__init__()
-        self.render_field = FCBlock(132,3,2+opt.info_dim,1)
+        self.render_field = FCBlock(132,3,2+opt.geometric_latent_dim,1)
+        self.gamma = 7
     
     def forward(self,grid,infos):
         # input grid: BxWxHx2 input info: BxS
         B,W,H,_ = grid.shape
         expand_info = infos.unsqueeze(1).unsqueeze(1)
         expand_info = expand_info.repeat([1,W,H,1])
-        return self.render_field(torch.cat(grid,expand_info),-1)
+        return torch.sigmoid(self.gamma * self.render_field(torch.cat(grid,expand_info),-1))
 
 if __name__ == "__main__":
     model = GeometricStructure()
