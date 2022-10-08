@@ -226,7 +226,7 @@ class GeometricStructure(nn.Module):
         return 
 
     def sample(self,log = False):
-        assert self.struct is not None,print("the dag struct is None")
+        assert self.struct is not None,print("the dag struct is None") 
         assert self.realized,print("This concept dag is not realized yet")
         
         calculated_pdf = {}
