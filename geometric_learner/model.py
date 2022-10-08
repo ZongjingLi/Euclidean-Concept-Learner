@@ -34,11 +34,7 @@ class GeometricAutoEncoder(nn.Module):
         self.decoder.clear() # clear the previous storage of dag and embeddings.
         self.decoder.make_dag(concept_struct)  # build the dag graph of the concept structure.
         self.decoder.realize(encoder_features) # realize the semantics information and store in each.
-        for t in self.decoder.upward_memory_storage:
-            print(t,self.decoder.upward_memory_storage[t].shape)
-        print("namomo")
-        for t in self.decoder.downward_memory_storage:
-            print(t,self.decoder.downward_memory_storage[t].shape)
+
         # decode the output image
         sample = self.decoder.sample()
 
