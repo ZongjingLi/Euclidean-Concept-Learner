@@ -204,7 +204,7 @@ class GeometricStructure(nn.Module):
                 update_pdf = 0
             grid = union_pdf(update_pdf,grid) # add the pdf onto the grid
         
-        #for node in self.struct.nodes:Pr(node)
+        # for node in self.struct.nodes:Pr(node)
         return output_grid
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 

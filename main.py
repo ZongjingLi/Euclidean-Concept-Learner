@@ -9,15 +9,17 @@ train_parser.add_argument("--lr",default = 1e-2, type = float, help = "learning 
 train_opt = train_parser.parse_args(args = [])
 
 if __name__ == "__main__":
-    
+
+    # prepare the dataset    
     dataset = EuclidConceptData("train","rhombus")
     loader  = DataLoader(dataset,batch_size = 1)
 
+    # prepare the geometric autoencoder model
     model  = GeometricAutoEncoder(model_opt)
 
     print(model)
-
     
+    # draw samples from the dataloader
     for sample in loader:
         # execute the GeoAutoencoder
         programs = [term[0] for term in sample["programs"]]
