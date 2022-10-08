@@ -40,6 +40,10 @@ def intersect_pdf(components):
     for comp in components: first_comp = torch.min(comp,first_comp).values
     return first_comp
 
+def segment(start,end,segments):
+    outputs = [ start + (end-start) * i/segments for i in range(segments)]
+    return torch.stack(outputs)
+
 class PointProp(nn.Module):
     def __init__(self,opt):
         super().__init__()
