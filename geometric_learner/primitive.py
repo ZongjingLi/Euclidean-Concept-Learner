@@ -102,7 +102,7 @@ class GeometricStructure(nn.Module):
         self.clear()
 
     def clear(self):
-        self.grid     =  make_grid(self.opt.resolution).permute([1,2,0]).to(self.opt.device)
+        self.grid     = make_grid(self.opt.resolution).permute([1,2,0]).to(self.opt.device)
         self.realized = False # clear the state of dag, and the realization
         self.struct   = None  # clear the state of concept struct
 
@@ -174,7 +174,7 @@ class GeometricStructure(nn.Module):
         self.upward_memory_storage = upward_memory_storage
         return
 
-    def sample(self,log = True):
+    def sample(self,log = False):
         assert self.struct is not None,print("the dag struct is None")
         assert self.realized,print("This concept dag is not realized yet")
         
@@ -189,18 +189,13 @@ class GeometricStructure(nn.Module):
             if node_type == "line":
                 assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
                 point1_pdf = Pr(connect_to[0]);point2_pdf = Pr(connect_to[1])
+                point1_coord = torch.max(point1_pdf);
 
-                grid_expand = self.grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments,1,1])
-                self.line = segment(self.point1.coord,self.point2.coord,self.segments)
-                diff = grid_expand - self.line.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
+                line = segment(point1_coord,point2_coord,self.opt.segments)
+                print(self.line.shape)
+                
+                line_locs = 
 
-                leng_diff = torch.norm(diff,2,dim = -1)
-                min_diff = torch.min(leng_diff,0).values
-
-                line_norm = dists.Normal(0,self.opt.line_scale)
-                ogpdf = line_norm.log_prob(min_diff)
-
-                logpdf = logpdf.view(self.opt.resolution)
 
                 if log:update_pdf = logpdf
                 else:update_pdf = logpdf.exp()
@@ -214,9 +209,13 @@ class GeometricStructure(nn.Module):
             if node_type == "point":
                 # calculate the render field made 
                 attention_field = self.signal_decoder(self.upward_memory_storage[node])
+                if log:attention_field = attention_field.log()
                 
                 # the connections to this point will be constraints
-                update_pdf = 0
+                if len(connect_to) == 0:update_pdf = attention_field
+                else:
+                    constraint = [Pr(obj) for obj in connect_to]
+                    update_pdf = intersect_pdf(constraint)
             grid = union_pdf(update_pdf,grid) # add the pdf onto the grid
         
         # for node in self.struct.nodes:Pr(node)

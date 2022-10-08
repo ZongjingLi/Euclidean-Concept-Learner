@@ -12,5 +12,6 @@ parser.add_argument("--encoder_latent_dim", default = 64, type = int, help = "th
 
 parser.add_argument("--scale", default = 0.2, type = float, help = "the default scale for te line, point prob")
 parser.add_argument("--line_scale",default = 0.6, type = float, help = "the line scale normal used for exist evaluation")
+parser.add_argument("--sgements",default = 100, type = float, help = "the number of segments to calculate")
 
 model_opt= parser.parse_args(args = [])
