@@ -197,8 +197,9 @@ class GeometricStructure(nn.Module):
                 logpdf = line_norm.log_prob(min_diff)
 
                 logpdf = logpdf.view(self.opt.resolution)
-                if log:return logpdf
-                return  logpdf.exp()
+                
+                if log:update_pdf = logpdf
+                update_pdf = logpdf.exp()
             if node_type == "circle":
                 update_pdf = 0
             if node_type == "point":
