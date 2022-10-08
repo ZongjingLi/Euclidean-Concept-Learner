@@ -1,3 +1,5 @@
+from re import S
+from turtle import down
 import torch
 import torch.nn as nn
 import torch.distributions as dists
@@ -9,8 +11,9 @@ from moic.data_structure import *
 from moic.mklearn.nn.functional_net import *
 
 import networkx as nx
-from .config import *
-#from config import *
+
+try:from .config import *
+except:from config import *
 
 def ptype(inputs):
     if inputs[0] == "c": return "circle"
@@ -50,8 +53,23 @@ def segment(start,end,segments):
 class PointProp(nn.Module):
     def __init__(self,opt):
         super().__init__()
-        magic_number = 132
         self.opt = opt
+        self.update_map   = nn.Linear(opt.geometric_latent_dim,opt.geometric_latent_dim)
+        self.message_map  = nn.Linear(opt.geometric_latent_dim,opt.geometric_latent_dim)
+        self.joint_update = FCBlock(132,2,opt.encoder_latent_dim + opt.geometric_latent_dim,opt.geometric_latent_dim)
+
+    def forward(self,signal,components):
+        if not components: 
+            return self.joint_update(torch.cat([signal,torch.zeros([1,self.opt.geometric_latent_dim])] ,-1))
+        right_inters = 0
+        for comp in components:right_inters += self.message_map(comp)
+
+        right_inters = self.update_map(right_inters)
+        return self.joint_update(torch.cat([signal,right_inters],-1))
+
+class MessageProp(nn.Module):
+    def __init__(self,opt):
+        super().__init__()
         self.update_map   = nn.Linear(opt.geometric_latent_dim,opt.geometric_latent_dim)
         self.message_map  = nn.Linear(opt.geometric_latent_dim,opt.geometric_latent_dim)
         self.joint_update = FCBlock(132,2,opt.encoder_latent_dim + opt.geometric_latent_dim,opt.geometric_latent_dim)
@@ -71,12 +89,22 @@ def find_connection(node,graph,loc = 0):
         if edge[loc] == node:outputs.append(edge[int(not loc)])
     return outputs
 
-def make_grid(resolution = model_opt.resolution):
+def make_grid(resolution = (64,64)):
     # make the grid with the shape of [w,h]
     x = torch.linspace(0,resolution[0],resolution[0])
     y = torch.linspace(0,resolution[1],resolution[1])
     grid = torch.meshgrid(x,y)
     return torch.stack(grid)
+
+def sample_point(pdf):
+    W,H      = pdf.shape
+    norm_pdf = pdf.flatten().numpy()
+    norm_pdf = norm_pdf/np.sum(norm_pdf,-1)
+    grid     = make_grid([W,H]).permute([1,2,0]).flatten(start_dim = 0,end_dim = 1).numpy()
+
+    location = np.random.choice(range(norm_pdf.shape[0]),p = norm_pdf)
+
+    return np.int8(grid[location])
 
 class GeometricStructure(nn.Module):
     def __init__(self,opt = model_opt):
@@ -90,10 +118,15 @@ class GeometricStructure(nn.Module):
         # TODO: implement another version of the line propagator so the input is invariant
         self.line_propagator = FCBlock(132,2,opt.geometric_latent_dim * 2, opt.geometric_latent_dim)
         self.circle_propagator  = FCBlock(132,2,opt.geometric_latent_dim * 2, opt.geometric_latent_dim)
-        self.point_propagator = PointProp(opt)
+        self.point_propagator   = PointProp(opt)
+        # this line above is the upward proppagation
+        self.message_propagator = MessageProp(opt) # this is the message proppagator used in the downward proppagation
+
+        # TODO: make a better version of the downward propagation
 
         # graph signal storage
-        self.upward_memory_storage = None
+        self.upward_memory_storage   = None
+        self.downward_memory_storage = None
 
         # decode the semantics of the signal vector
         self.signal_decoder = RenderField(model_opt)
@@ -104,7 +137,9 @@ class GeometricStructure(nn.Module):
     def clear(self):
         self.grid     = make_grid(self.opt.resolution).permute([1,2,0]).to(self.opt.device)
         self.realized = False # clear the state of dag, and the realization
-        self.struct   = None  # clear the state of concept struct
+        self.struct   = None  # clear the state of concept struct   
+        self.upward_memory_storage   = None
+        self.downward_memory_storage = None
 
     def make_dag(self,concept_struct):
         """
@@ -159,8 +194,7 @@ class GeometricStructure(nn.Module):
                 for component in connect_to:
                     if component == "<V>": # the input prior is in the domain of <V>
                         pass# TODO:point_prop_inputs.append(signal)
-                    else: # the input prior is the intersection of some component
-                        point_prop_inputs.append(quest_down(component))
+                    else:point_prop_inputs.append(quest_down(component)) # the input prior is the intersection of some component
                 update_component = self.point_propagator(signal,point_prop_inputs)
             if node == "<V>":return
         
@@ -170,9 +204,24 @@ class GeometricStructure(nn.Module):
         for node in self.struct.nodes:quest_down(node)
 
         # 2. start the downward propagation. (maybe not)
-        # TODO: downward propagation of the dag 
-        self.upward_memory_storage = upward_memory_storage
-        return
+        downward_memory_storage   = {}
+        def quest_up(node):
+            if node == "<V>":return
+            if node in downward_memory_storage:return downward_memory_storage[node]# if node already calculated, nothing happens
+            connect_to     =  find_connection(node,self.struct,loc = 0) # find all the nodes that connected to the current node
+
+            input_neighbors = [quest_up(p_node) for p_node in connect_to]
+            current_node_feature = self.upward_memory_storage[node] # this is the feature a point store currently (circle,point,line aware)
+            update_component = self.message_propagator(current_node_feature,input_neighbors) # this is the update component feature
+        
+            downward_memory_storage[node] = update_component 
+            return update_component
+        #for node in self.struct: quest_up(node)
+
+        # update the memory unit of the propagation
+        self.upward_memory_storage   = upward_memory_storage
+        self.downward_memory_storage = downward_memory_storage
+        return 
 
     def sample(self,log = False):
         assert self.struct is not None,print("the dag struct is None")
@@ -188,14 +237,13 @@ class GeometricStructure(nn.Module):
 
             if node_type == "line":
                 assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
-                point1_pdf = Pr(connect_to[0]);point2_pdf = Pr(connect_to[1])
-                point1_coord = torch.max(point1_pdf);
+                point1_pdf   = Pr(connect_to[0]);point2_pdf = Pr(connect_to[1])
+                point1_coord = sample_point(point1_pdf);point2_coord = sample_point(point2_pdf)
 
                 line = segment(point1_coord,point2_coord,self.opt.segments)
                 print(self.line.shape)
                 
                 line_locs = []
-
 
                 if log:update_pdf = logpdf
                 else:update_pdf = logpdf.exp()

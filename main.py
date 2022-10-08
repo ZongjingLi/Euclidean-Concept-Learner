@@ -11,7 +11,7 @@ train_opt = train_parser.parse_args(args = [])
 if __name__ == "__main__":
 
     # prepare the dataset    
-    dataset = EuclidConceptData("train","rhombus")
+    dataset = EuclidConceptData("train","radii")
     loader  = DataLoader(dataset,batch_size = 1)
 
     # prepare the geometric autoencoder model
