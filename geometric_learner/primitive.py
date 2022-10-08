@@ -175,7 +175,7 @@ class GeometricStructure(nn.Module):
         assert self.struct is not None,print("the dag struct is None")
         assert self.realized,print("This concept dag is not realized yet")
         
-        output_grid = self.grid
+        self.grid = torch.zeros(self.opt.resolution + [1])
         def Pr(node):
             pass
         
