@@ -179,7 +179,7 @@ class GeometricStructure(nn.Module):
         assert self.realized,print("This concept dag is not realized yet")
         
         calculated_pdf = {}
-        output_grid = torch.ones(self.opt.resolution + [1])
+        output_grid = torch.zeros(self.opt.resolution + (1,)) # every time a pdf is composed with the current one
         def Pr(node):
             if node in calculated_pdf:return calculated_pdf[node] # just take the memory if this node is calculated
             node_type  = ptype(node)
@@ -204,7 +204,7 @@ class GeometricStructure(nn.Module):
                 update_pdf = 0
             grid = union_pdf(update_pdf,grid) # add the pdf onto the grid
         
-        for node in self.struct.nodes:Pr(node)
+        #for node in self.struct.nodes:Pr(node)
         return output_grid
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 
