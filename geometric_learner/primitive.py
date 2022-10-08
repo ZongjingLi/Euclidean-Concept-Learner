@@ -194,7 +194,7 @@ class GeometricStructure(nn.Module):
                 line = segment(point1_coord,point2_coord,self.opt.segments)
                 print(self.line.shape)
                 
-                line_locs = 
+                line_locs = []
 
 
                 if log:update_pdf = logpdf
