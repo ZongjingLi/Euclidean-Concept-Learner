@@ -14,9 +14,10 @@ if __name__ == "__main__":
     loader  = DataLoader(dataset,batch_size = 1)
 
     model  = GeometricAutoEncoder(model_opt)
+
+    print(model)
     
     for sample in loader:
-
         # execute the GeoAutoencoder
         programs = [term[0] for term in sample["programs"]]
         outputs = model(sample["image"],programs)

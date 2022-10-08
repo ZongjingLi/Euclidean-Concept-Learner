@@ -143,6 +143,7 @@ class GeometricStructure(nn.Module):
     def sample(self):
         assert self.struct is not None,print("the dag struct is None")
         assert self.realized,print("This concept dag is not realized yet")
+        
 
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 

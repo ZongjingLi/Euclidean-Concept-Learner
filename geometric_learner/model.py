@@ -26,13 +26,17 @@ class GeometricAutoEncoder(nn.Module):
         """
         if isinstance(concept_struct,str):print("concept struct is an instance")
         if concept_struct is None:concept_struct = self.find_concept_struct(image)
+        # encode input features
         encoder_features = self.encoder(image) # encoder the global prior feature
-        encoder_features = encoder_features.flatten(start_dim = 1)
+        encoder_features = self.lateral(encoder_features.flatten(start_dim = 1))
 
-        self.decoder.make_dag(concept_struct)
-        self.decoder.realize(encoder_features) # use the 
+        # construct the output using the concept structure
+        self.decoder.clear() # clear the previous storage of dag and embeddings.
+        self.decoder.make_dag(concept_struct)  # build the dag graph of the concept structure.
+        self.decoder.realize(encoder_features) # realize the semantics information and store in each.
 
-        sample = self.decoder
+        # decode the output image
+        sample = self.decoder.sample()
 
         return sample
 
