@@ -6,8 +6,8 @@ from moic.data_structure import *
 from moic.mklearn.nn.functional_net import *
 
 import networkx as nx
-#from .config import *
-from config import *
+from .config import *
+#from config import *
 
 def ptype(inputs):
     if inputs[0] == "c": return "circle"
@@ -30,9 +30,23 @@ def parse_geoclidean(programs = dgc):
         outputs.append(func_node_form)
     return outputs
 
-class SetProp(nn.Module):
-    def __init__(self,model_opt):
+class PointProp(nn.Module):
+    def __init__(self,opt):
         super().__init__()
+        magic_number = 132
+        self.opt = opt
+        self.update_map   = nn.Linear(opt.geometric_latent_dim,opt.geometric_latent_dim)
+        self.message_map  = nn.Linear(opt.geometric_latent_dim,opt.geometric_latent_dim)
+        self.joint_update = FCBlock(132,2,opt.encoder_latent_dim + opt.geometric_latent_dim,opt.geometric_latent_dim)
+
+    def forward(self,signal,components):
+        if not components: 
+            return self.joint_update(torch.cat([signal,torch.zeros([1,self.opt.geometric_latent_dim])] ,-1))
+        right_inters = 0
+        for comp in components:right_inters += self.message_map(comp)
+
+        right_inters = self.update_map(right_inters)
+        return self.joint_update(torch.cat([signal,right_inters],-1))
 
 def find_connection(node,graph,loc = 0):
     outputs = []
@@ -41,15 +55,17 @@ def find_connection(node,graph,loc = 0):
     return outputs
 
 class GeometricStructure(nn.Module):
-    def __init__(self,program = "p1()"):
+    def __init__(self,opt = model_opt):
         super().__init__()
+        # structure stored in the realization
         self.realized = False
         self.struct = None
         self.visible = []
-        self.concept_embedding = []
-        self.line_propagator = None
-        self.circle_propagator  = None
-        self.point_propagator = None
+
+        # TODO: implement another version of the line propagator so the input is invariant
+        self.line_propagator = FCBlock(132,2,opt.geometric_latent_dim * 2, opt.geometric_latent_dim)
+        self.circle_propagator  = FCBlock(132,2,opt.geometric_latent_dim * 2, opt.geometric_latent_dim)
+        self.point_propagator = PointProp(opt)
 
     def clear(self):
         self.realized = False # clear the state of dag, and the realization
@@ -87,23 +103,41 @@ class GeometricStructure(nn.Module):
     
         return realized_graph
 
-    def realize(self):
+    def realize(self,signal):
         # given every node a vector representation
         # 1. start the upward propagation
         upward_memory_storage   = {}
         def quest_down(node):
             if node in upward_memory_storage:return upward_memory_storage[node]# is it is calculated, nothing happens
             primitive_type =  ptype(node)
-            connect_to     =  find_connection(node,self.struct,int = 1)
+            connect_to     =  find_connection(node,self.struct,loc = 1)
             if primitive_type == "circle": # use the circle propagator to calculate mlpc(cat([ec1,ec2]))
                 assert len(connect_to) == 2,print("the circle is connected to {} parameters (2 expected).".format(len(connect_to)))
+                left_component   = quest_down(connect_to[0])
+                right_component  = quest_down(connect_to[1])
+                update_component = self.circle_propagator(torch.cat([left_component,right_component],-1))
             if primitive_type == "line":
                 assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
+                start_component  = quest_down(connect_to[0])
+                end_component    = quest_down(connect_to[1])
+                update_component = self.line_propagator(torch.cat([start_component,end_component],-1))
             if primitive_type == "point":
-                pass
+                point_prop_inputs = []
+                for component in connect_to:
+                    if component == "<V>": # the input prior is in the domain of <V>
+                        pass#point_prop_inputs.append(signal)
+                    else: # the input prior is the intersection of some component
+                        point_prop_inputs.append(quest_down(component))
+                update_component = self.point_propagator(signal,point_prop_inputs)
+            if node == "<V>":return
+        
+            upward_memory_storage[node] = update_component 
+            return update_component
+        
+        for node in self.struct.nodes:quest_down(node)
 
-        # 2. start the downward propagation
-        downward_memory_storage = {}
+        # 2. start the downward propagation. (maybe not)
+        # TODO: downward propagation of the dag 
         return
 
     def sample(self):
@@ -129,10 +163,17 @@ class RenderField(nn.Module):
 if __name__ == "__main__":
     model = GeometricStructure()
     g = model.make_dag(["l1 = line(p1(),p2())","l2 = line(p2(),p3())","l3 = line(p3(),p1())"])
+
+    model.realize(torch.randn([1,model_opt.encoder_latent_dim]))
+
     nx.draw(g, with_labels=True, font_weight='bold')
     plt.show()
-    
+
+    print("phase 2")    
     g = model.make_dag(dgc)
+
+    model.realize(torch.randn([1,model_opt.encoder_latent_dim]))
+
     nx.draw(g, with_labels=True, font_weight='bold')
     plt.show()
 
