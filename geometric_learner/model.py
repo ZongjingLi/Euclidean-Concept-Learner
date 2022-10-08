@@ -1,6 +1,7 @@
 from .config     import *
 from .encoder    import *
 from .dataloader import *
+from .primitive  import *
 
 import torch
 import torch.nn as nn
@@ -13,7 +14,8 @@ class GeometricAutoEncoder(nn.Module):
         super().__init__()
         self.encoder = GeometricEncoder(3,132)
         self.asearch = None
-        self.structure = None
+        self.decoder = GeometricStructure()
+        self.lateral = FCBlock(132,3,64 * 64 * 132,model_opt.encoder_latent_dim)
 
     def find_concept_struct(self,image):
         return 0
@@ -25,11 +27,12 @@ class GeometricAutoEncoder(nn.Module):
         if isinstance(concept_struct,str):print("concept struct is an instance")
         if concept_struct is None:concept_struct = self.find_concept_struct(image)
         encoder_features = self.encoder(image) # encoder the global prior feature
-        print(encoder_features.shape)
-        self.structure.make_dag(concept_struct)
-        self.structure.realize(encoder_features) # use the 
+        encoder_features = encoder_features.flatten(start_dim = 1)
 
-        sample = self.structure.sample()
+        self.decoder.make_dag(concept_struct)
+        self.decoder.realize(encoder_features) # use the 
+
+        sample = self.decoder
 
         return sample
 

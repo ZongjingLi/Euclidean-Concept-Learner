@@ -11,14 +11,17 @@ train_opt = train_parser.parse_args(args = [])
 if __name__ == "__main__":
     
     dataset = EuclidConceptData("train","diameter")
-    loader = DataLoader(dataset,batch_size = 1)
+    loader  = DataLoader(dataset,batch_size = 1)
 
-    struct = GeometricStructure()
-
+    model  = GeometricAutoEncoder(model_opt)
+    
     for sample in loader:
 
+        # execute the GeoAutoencoder
         programs = [term[0] for term in sample["programs"]]
-        g = struct.make_dag(programs)
+        outputs = model(sample["image"],programs)
+
+        g = model.decoder.struct
         nx.draw_networkx(g)
         #nx.draw_shell(g,with_labels = True)
         plt.show()
