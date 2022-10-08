@@ -25,6 +25,7 @@ if __name__ == "__main__":
         programs = [term[0] for term in sample["programs"]]
         outputs = model(sample["image"],programs)
 
+        # plot the concept structure found
         g = model.decoder.struct
         nx.draw_networkx(g)
         #nx.draw_shell(g,with_labels = True)

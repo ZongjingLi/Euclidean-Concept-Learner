@@ -189,7 +189,22 @@ class GeometricStructure(nn.Module):
             if node_type == "line":
                 assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
                 point1_pdf = Pr(connect_to[0]);point2_pdf = Pr(connect_to[1])
-                update_pdf = 0
+
+                grid_expand = self.grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments,1,1])
+                self.line = segment(self.point1.coord,self.point2.coord,self.segments)
+                diff = grid_expand - self.line.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
+
+                leng_diff = torch.norm(diff,2,dim = -1)
+                min_diff = torch.min(leng_diff,0).values
+
+                line_norm = dists.Normal(0,self.opt.line_scale)
+                ogpdf = line_norm.log_prob(min_diff)
+
+                logpdf = logpdf.view(self.opt.resolution)
+
+                if log:update_pdf = logpdf
+                else:update_pdf = logpdf.exp()
+
 
             if node_type == "circle":
                 assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
