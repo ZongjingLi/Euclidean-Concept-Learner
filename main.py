@@ -16,6 +16,8 @@ if __name__ == "__main__":
     model  = GeometricAutoEncoder(model_opt)
 
     print(model)
+    print(model.decoder.grid)
+    print(model.decoder.grid.shape)
     
     for sample in loader:
         # execute the GeoAutoencoder
