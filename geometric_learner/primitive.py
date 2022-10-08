@@ -185,24 +185,22 @@ class GeometricStructure(nn.Module):
             node_type  = ptype(node)
             connect_to = find_connection(self.struct,loc = 1) # find all the points that this point connected by
             if node not in self.visible:return 
+
             if node_type == "line":
-                grid_expand = self.grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments,1,1])
-                self.line = segment(self.point1.coord,self.point2.coord,self.segments)
-                diff = grid_expand - self.line.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
-
-                leng_diff = torch.norm(diff,2,dim = -1)
-                min_diff = torch.min(leng_diff,0).values
-
-                line_norm = dists.Normal(0,self.opt.line_scale)
-                logpdf = line_norm.log_prob(min_diff)
-
-                logpdf = logpdf.view(self.opt.resolution)
-                
-                if log:update_pdf = logpdf
-                update_pdf = logpdf.exp()
-            if node_type == "circle":
+                assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
+                point1_pdf = Pr(connect_to[0]);point2_pdf = Pr(connect_to[1])
                 update_pdf = 0
+
+            if node_type == "circle":
+                assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
+                point1_pdf = Pr(connect_to[0]);point2_pdf = Pr(connect_to[1])
+                update_pdf = 0
+
             if node_type == "point":
+                # calculate the render field made 
+                attention_field = self.signal_decoder(self.upward_memory_storage[node])
+                
+                # the connections to this point will be constraints
                 update_pdf = 0
             grid = union_pdf(update_pdf,grid) # add the pdf onto the grid
         
