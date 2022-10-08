@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+import numpy as np
+
 import matplotlib.pyplot as plt
 from moic.data_structure import *
 from moic.mklearn.nn.functional_net import *
@@ -175,12 +177,23 @@ class GeometricStructure(nn.Module):
         assert self.struct is not None,print("the dag struct is None")
         assert self.realized,print("This concept dag is not realized yet")
         
-        self.grid = torch.zeros(self.opt.resolution + [1])
+        calculated_pdf = {}
+        self.grid = torch.ones(self.opt.resolution + [1])
         def Pr(node):
-            pass
+            if node in calculated_pdf:return calculated_pdf[node] # just take the memory if this node is calculated
+            node_type  = ptype(node)
+            connect_to = find_connection(self.struct,loc = 1) # find all the points that this point connected by
+            if node not in self.visible:return 
+            if node_type == "line":
+                update_pdf = 0
+            if node_type == "circle":
+                update_pdf = 0
+            if node_type == "point":
+                update_pdf = 0
+            grid = union_pdf(update_pdf,grid) # add the pdf onto the grid
         
         for node in self.struct.nodes:Pr(node)
-        return 
+        return self.grid
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 
 # map that represents the attention realm on the grid domain
