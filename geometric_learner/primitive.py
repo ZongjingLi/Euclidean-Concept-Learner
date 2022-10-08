@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.distributions as dists
 
 import numpy as np
 
@@ -173,19 +174,31 @@ class GeometricStructure(nn.Module):
         self.upward_memory_storage = upward_memory_storage
         return
 
-    def sample(self):
+    def sample(self,log = True):
         assert self.struct is not None,print("the dag struct is None")
         assert self.realized,print("This concept dag is not realized yet")
         
         calculated_pdf = {}
-        self.grid = torch.ones(self.opt.resolution + [1])
+        output_grid = torch.ones(self.opt.resolution + [1])
         def Pr(node):
             if node in calculated_pdf:return calculated_pdf[node] # just take the memory if this node is calculated
             node_type  = ptype(node)
             connect_to = find_connection(self.struct,loc = 1) # find all the points that this point connected by
             if node not in self.visible:return 
             if node_type == "line":
-                update_pdf = 0
+                grid_expand = self.grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments,1,1])
+                self.line = segment(self.point1.coord,self.point2.coord,self.segments)
+                diff = grid_expand - self.line.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
+
+                leng_diff = torch.norm(diff,2,dim = -1)
+                min_diff = torch.min(leng_diff,0).values
+
+                line_norm = dists.Normal(0,self.opt.line_scale)
+                logpdf = line_norm.log_prob(min_diff)
+
+                logpdf = logpdf.view(self.opt.resolution)
+                if log:return logpdf
+                return  logpdf.exp()
             if node_type == "circle":
                 update_pdf = 0
             if node_type == "point":
@@ -193,7 +206,7 @@ class GeometricStructure(nn.Module):
             grid = union_pdf(update_pdf,grid) # add the pdf onto the grid
         
         for node in self.struct.nodes:Pr(node)
-        return self.grid
+        return output_grid
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 
 # map that represents the attention realm on the grid domain
