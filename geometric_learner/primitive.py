@@ -136,7 +136,7 @@ class GeometricStructure(nn.Module):
                 point_prop_inputs = []
                 for component in connect_to:
                     if component == "<V>": # the input prior is in the domain of <V>
-                        pass#point_prop_inputs.append(signal)
+                        pass# TODO:point_prop_inputs.append(signal)
                     else: # the input prior is the intersection of some component
                         point_prop_inputs.append(quest_down(component))
                 update_component = self.point_propagator(signal,point_prop_inputs)
