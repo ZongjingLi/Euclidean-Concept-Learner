@@ -247,12 +247,12 @@ class GeometricStructure(nn.Module):
             if node_primitive_type == "circle":
                 center_loc = construct(connect_to[0])
                 edge_loc   = construct(connect_to[1])
-                points_on_circle = []
+                points_on_circle = make_circle(center_loc,edge_loc)
                 if node in self.visible:point_realizations.extend(points_on_circle) # add points into the realizations
             if node_primitive_type == "line":
                 start = construct(connect_to[0])
                 end   = construct(connect_to[1])
-                points_on_line = []
+                points_on_line = make_line(start,end)
                 if node in self.visible:point_realizations.extend(points_on_line) # add points into the realizations
             if node_primitive_type == "point":
                 if len(connect_to) == 0: # this is a unconstraint point
