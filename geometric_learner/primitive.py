@@ -1,5 +1,3 @@
-from re import S
-from turtle import down
 import torch
 import torch.nn as nn
 import torch.distributions as dists
@@ -234,52 +232,31 @@ class GeometricStructure(nn.Module):
         assert self.struct is not None,print("the dag struct is None") 
         assert self.realized,print("This concept dag is not realized yet")
         
-        calculated_pdf = {}
+        calculated_realize = {}
         output_grid = torch.zeros(self.opt.resolution + (1,)) # every time a pdf is composed with the current one
-        def Pr(node):
-            if node in calculated_pdf:return calculated_pdf[node] # just take the memory if this node is calculated
-            node_type  = ptype(node)
-            connect_to = find_connection(self.struct,loc = 1) # find all the points that this point connected by
-
-            if node_type == "line":
-                assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
-                point1_pdf   = Pr(connect_to[0]);point2_pdf = Pr(connect_to[1])
-                point1_coord = sample_point(point1_pdf);point2_coord = sample_point(point2_pdf)
-                segments = math.abs(point1_coord[0] - point2_coord[0])
-
-                grid_expand = self.grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments,1,1])
-                self.line = segment(point1_coord,point2_coord,segments)
-                diff = grid_expand - self.line.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
-
-                leng_diff = torch.norm(diff,2,dim = -1)
-                min_diff = torch.min(leng_diff,0).values
-
-                line_norm = dists.Normal(0,self.opt.line_scale)
-                logpdf = line_norm.log_prob(min_diff)
-
-                logpdf = logpdf.view(self.opt.resolution)
-                update_pdf = logpdf.exp() if not log else logpdf
-
-
-            if node_type == "circle":
-                assert len(connect_to) == 2,print("the line is connected to {} parameters (2 expected).".format(len(connect_to)))
-                point1_pdf = Pr(connect_to[0]);point2_pdf = Pr(connect_to[1])
-                update_pdf = 0
-
-            if node_type == "point":
-                # calculate the render field made 
-                attention_field = self.signal_decoder(self.upward_memory_storage[node])
-                if log:attention_field = attention_field.log()
-                
-                # the connections to this point will be constraints
-                if len(connect_to) == 0:update_pdf = attention_field
-                else:
-                    constraint = [Pr(obj) for obj in connect_to]
-                    update_pdf = intersect_pdf(constraint)
-
-            if node in self.visible: grid = union_pdf(update_pdf,grid) # add the pdf onto the grid
+        point_realizations = []
         
-        # for node in self.struct.nodes:Pr(node)
+        def construct(node):
+            # if it is a point, realize it and return it, else, just realize it and add them into the visible realizations
+            if node in calculated_realize:return calculated_realize[node]
+            connect_to = find_connection(node,self.struct,loc = 1)
+
+            node_primitive_type = ptype(node)
+            if node_primitive_type == "circle":
+                center_loc = construct(connect_to[0])
+                edge_loc   = construct(connect_to[1])
+            if node_primitive_type == "line":
+                start = construct(connect_to[0])
+                end   = construct(connect_to[1])
+            if node_primitive_type == "point":
+                if len(connect_to) == 0: # this is a unconstraint point
+                    pass
+                if len(connect_to) == 1: # this is a partial constraint point, it lies on either a line or a circle
+                    pass
+                if len(connect_to) == 2: # this is a fully constaint point, it lies on the intersection of c1,c2 or c,l or l1,l2
+                    pass
+
+        for node in self.struct.nodes:construct(node)
         return output_grid
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 
