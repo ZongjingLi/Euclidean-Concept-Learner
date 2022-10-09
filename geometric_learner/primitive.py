@@ -52,7 +52,9 @@ def segment(start,end,segments):
 
 def make_circle(center,edge):return []
 
-def make_line(start,end):return []
+def make_line(start,end):
+    segments = abs(start[0] - end[0])
+    return [ start + (end-start) * i/segments for i in range(segments)]
 
 class PointProp(nn.Module):
     def __init__(self,opt):
@@ -134,9 +136,9 @@ class GeometricStructure(nn.Module):
         self.downward_memory_storage = None
 
         # decode the semantics of the signal vector
-        self.space_decoder  = 0
-        self.line_decoder   = 0
-        self.circle_decoder = 0
+        self.space_decoder  = PointDecoder(opt.geometric_latent_dim)
+        self.line_decoder   = LineDecoder(opt.geometric_latent_dim)
+        self.circle_decoder = CircleDecoder(opt.geometric_latent_dim)
 
         self.opt = opt
 
@@ -235,7 +237,6 @@ class GeometricStructure(nn.Module):
         assert self.realized,print("This concept dag is not realized yet")
         
         calculated_realize = {}
-        output_grid = torch.zeros(self.opt.resolution + (1,)) # every time a pdf is composed with the current one
         point_realizations = []
         
         def construct(node):
@@ -263,7 +264,22 @@ class GeometricStructure(nn.Module):
                     pass
 
         for node in self.struct.nodes:construct(node)
-        return output_grid
+
+        output_grid =  make_grid(self.opt.resolution).permute([1,2,0]).to(self.opt.device)
+        grid_expand = output_grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments*2,1,1])
+
+        point_realizations = torch.cat(point_realizations,-1)
+        diff = grid_expand - point_realizations.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
+
+        leng_diff = torch.norm(diff,2,dim = -1)
+        min_diff = torch.min(leng_diff,0).values
+
+        line_norm = dists.Normal(0,self.opt.scale)
+        logpdf = line_norm.log_prob(min_diff)
+
+        logpdf = logpdf.view(self.opt.resolution)
+
+        return logpdf
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 
 # map that represents the attention realm on the grid domain
@@ -299,7 +315,7 @@ if __name__ == "__main__":
     g = model.make_dag(dgc)
 
     model.realize(torch.randn([1,model_opt.encoder_latent_dim]))
-
+    
     nx.draw(g, with_labels=True, font_weight='bold')
     plt.show()
 
