@@ -50,6 +50,10 @@ def segment(start,end,segments):
     outputs = [ start + (end-start) * i/segments for i in range(segments)]
     return torch.stack(outputs)
 
+def make_circle(center,edge):return []
+
+def make_line(start,end):return []
+
 class PointProp(nn.Module):
     def __init__(self,opt):
         super().__init__()
@@ -185,6 +189,7 @@ class GeometricStructure(nn.Module):
             if node in upward_memory_storage:return upward_memory_storage[node]# is it is calculated, nothing happens
             primitive_type =  ptype(node)
             connect_to     =  find_connection(node,self.struct,loc = 1)
+            if node == "<V>":return
             if primitive_type == "circle": # use the circle propagator to calculate mlpc(cat([ec1,ec2]))
                 assert len(connect_to) == 2,print("the circle is connected to {} parameters (2 expected).".format(len(connect_to)))
                 left_component   = quest_down(connect_to[0]);right_component  = quest_down(connect_to[1])
@@ -196,11 +201,8 @@ class GeometricStructure(nn.Module):
             if primitive_type == "point":
                 point_prop_inputs = []
                 for component in connect_to:
-                    if component == "<V>": # the input prior is in the domain of <V>
-                        pass# TODO:point_prop_inputs.append(signal)
-                    else:point_prop_inputs.append(quest_down(component)) # the input prior is the intersection of some component
+                    if component != "<V>":point_prop_inputs.append(quest_down(component)) # the input prior is the intersection of some component
                 update_component = self.point_propagator(signal,point_prop_inputs)
-            if node == "<V>":return
         
             upward_memory_storage[node] = update_component 
             return update_component
@@ -245,9 +247,13 @@ class GeometricStructure(nn.Module):
             if node_primitive_type == "circle":
                 center_loc = construct(connect_to[0])
                 edge_loc   = construct(connect_to[1])
+                points_on_circle = []
+                if node in self.visible:point_realizations.extend(points_on_circle) # add points into the realizations
             if node_primitive_type == "line":
                 start = construct(connect_to[0])
                 end   = construct(connect_to[1])
+                points_on_line = []
+                if node in self.visible:point_realizations.extend(points_on_line) # add points into the realizations
             if node_primitive_type == "point":
                 if len(connect_to) == 0: # this is a unconstraint point
                     pass
