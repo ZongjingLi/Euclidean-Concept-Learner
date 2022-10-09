@@ -132,7 +132,10 @@ class GeometricStructure(nn.Module):
         self.downward_memory_storage = None
 
         # decode the semantics of the signal vector
-        self.signal_decoder = RenderField(model_opt)
+        self.space_decoder  = 0
+        self.line_decoder   = 0
+        self.circle_decoder = 0
+
         self.opt = opt
 
         self.clear()
@@ -289,18 +292,16 @@ class PointDecoder(nn.Module):
         self.alpha = 7;self.beta = 64
     def forward(self,x):return torch.sigmoid( self.alpha *  self.raw_decoder(x) ) * self.beta
 
-class RenderField(nn.Module):
-    def __init__(self,opt):
+class LineDecoder(nn.Module):
+    def __init__(self,in_dim):
         super().__init__()
-        self.render_field = FCBlock(132,3,2+opt.geometric_latent_dim,1)
-        self.gamma = 7
-    
-    def forward(self,grid,infos):
-        # input grid: BxWxHx2 input info: BxS
-        B,W,H,_ = grid.shape
-        expand_info = infos.unsqueeze(1).unsqueeze(1)
-        expand_info = expand_info.repeat([1,W,H,1])
-        return torch.sigmoid(self.gamma * self.render_field(torch.cat(grid,expand_info),-1))
+    def forward(self,start,end,signal):return
+
+class CircleDecoder(nn.Module):
+    def __init__(self,in_dim):
+        super().__init__()
+
+    def forward(self,center,edge,signal):return 0
 
 if __name__ == "__main__":
     model = GeometricStructure()
