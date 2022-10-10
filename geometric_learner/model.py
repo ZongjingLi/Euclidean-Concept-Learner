@@ -36,7 +36,7 @@ class GeometricAutoEncoder(nn.Module):
         self.decoder.realize(encoder_features) # realize the semantics information and store in each.
 
         # decode the output image
-        sample = self.decoder.sample()
+        sample = self.decoder.sample(True)
 
         return sample
 

@@ -53,7 +53,7 @@ def segment(start,end,segments):
 def make_circle(center,edge):return []
 
 def make_line(start,end):
-    segments = abs(start[0] - end[0])
+    segments = abs(start[0] - end[0]);segments = 100
     return [ start + (end-start) * i/segments for i in range(segments)]
 
 class PointProp(nn.Module):
@@ -136,11 +136,12 @@ class GeometricStructure(nn.Module):
         self.downward_memory_storage = None
 
         # decode the semantics of the signal vector
-        self.space_decoder  = PointDecoder(opt.geometric_latent_dim)
-        self.line_decoder   = LineDecoder(opt.geometric_latent_dim)
-        self.circle_decoder = CircleDecoder(opt.geometric_latent_dim)
+        self.space_decoder  = PointDecoder(2 * opt.geometric_latent_dim)
+        self.line_decoder   = LineDecoder(2 * opt.geometric_latent_dim)
+        self.circle_decoder = CircleDecoder(2 * opt.geometric_latent_dim)
 
         self.opt = opt
+        self.resolution = opt.resolution
 
         self.clear()
 
@@ -253,22 +254,28 @@ class GeometricStructure(nn.Module):
             if node_primitive_type == "line":
                 start = construct(connect_to[0])
                 end   = construct(connect_to[1])
+                print(start,end)
                 points_on_line = make_line(start,end)
+                calculated_realize[node] = points_on_line
                 if node in self.visible:point_realizations.extend(points_on_line) # add points into the realizations
             if node_primitive_type == "point":
-                if len(connect_to) == 0: # this is a unconstraint point
+                if len(connect_to) == 1: # this is a unconstraint point
+                    point = self.space_decoder(torch.cat([self.upward_memory_storage[node],
+                                                         self.downward_memory_storage[node]],-1))
+                    calculated_realize[node] = point
+                    return point
+                if len(connect_to) == 2: # this is a partial constraint point, it lies on either a line or a circle
                     pass
-                if len(connect_to) == 1: # this is a partial constraint point, it lies on either a line or a circle
-                    pass
-                if len(connect_to) == 2: # this is a fully constaint point, it lies on the intersection of c1,c2 or c,l or l1,l2
+                if len(connect_to) == 3: # this is a fully constaint point, it lies on the intersection of c1,c2 or c,l or l1,l2
                     pass
 
         for node in self.struct.nodes:construct(node)
 
         output_grid =  make_grid(self.opt.resolution).permute([1,2,0]).to(self.opt.device)
-        grid_expand = output_grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([self.segments*2,1,1])
+        grid_expand = output_grid.flatten(start_dim = 0, end_dim = 1).unsqueeze(0).repeat([len(point_realizations),1,1])
 
-        point_realizations = torch.cat(point_realizations,-1)
+        point_realizations = torch.cat(point_realizations,0)
+
         diff = grid_expand - point_realizations.unsqueeze(1).repeat([1,self.resolution[0] * self.resolution[1],1])
 
         leng_diff = torch.norm(diff,2,dim = -1)
@@ -278,8 +285,8 @@ class GeometricStructure(nn.Module):
         logpdf = line_norm.log_prob(min_diff)
 
         logpdf = logpdf.view(self.opt.resolution)
-
-        return logpdf
+        if not log:logpdf = logpdf.exp()
+        return logpdf.unsqueeze(0)
 
 # this is a neural render field defined on 2D grids. Input a semantics vector, it will output a attention 
 # map that represents the attention realm on the grid domain
@@ -287,9 +294,13 @@ class GeometricStructure(nn.Module):
 class PointDecoder(nn.Module):
     def __init__(self,in_dim):
         super().__init__()
-        self.raw_decoder = FCBlock(132,4,in_dim,2)
-        self.alpha = 7;self.beta = 64
-    def forward(self,x):return torch.sigmoid( self.alpha *  self.raw_decoder(x) ) * self.beta
+        self.mu_decoder = FCBlock(132,4,in_dim,2)
+        self.var_decoder =  FCBlock(132,4,in_dim,2)
+        self.alpha = 7;self.beta = 8.5
+    def forward(self,x):
+        mu =  F.softplus( self.alpha *  self.mu_decoder(x) ) * self.beta
+        var = self.var_decoder(x)
+        return torch.randn_like(var) * torch.exp(3 * var) + mu
 
 class LineDecoder(nn.Module):
     def __init__(self,in_dim):
